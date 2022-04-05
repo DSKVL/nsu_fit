@@ -3,6 +3,8 @@
 #include <cstring>
 #include <numeric>
 #include <cmath>
+#include <chrono>
+
 
 class Matrix
 {
@@ -12,6 +14,7 @@ public:
     ~Matrix();
 
     double norm() const;
+    static double dotProduct(const Matrix&, const Matrix&);
 
     Matrix& add(const Matrix&);
     Matrix& subtract(const Matrix&);
@@ -19,11 +22,11 @@ public:
     Matrix& multiplyRight(const Matrix&);
     Matrix& multiplyByScalar(double);
     Matrix& divideByScalar(double);
+    Matrix& copy(const Matrix&);
 
     bool equals(const Matrix&, double);
     void read(const char* filename);
     void set(double, size_t, size_t);
-    void copy(const Matrix&);
     void setSizeX(size_t);
     void setSizeY(size_t);
     void print();
@@ -41,7 +44,7 @@ private:
 class BadMatrixSizeException : public std::exception {
 
 };
-Matrix::Matrix(size_t x, size_t y) : sizeX_(x), sizeY_(y), data_(new double[sizeX_ * sizeY_]{0}), buf(new double[sizeX_ * sizeY_]{0}) {
+Matrix::Matrix(size_t x, size_t y) : sizeX_(x), sizeY_(y), data_(new double[sizeX_ * sizeY_]), buf(new double[sizeX_ * sizeY_]) {
     buf_capacity = sizeX_*sizeY_;
     for (size_t i = 0; i < sizeY_; i++)
         for (size_t j = 0; j < sizeX_; j++)
@@ -80,7 +83,8 @@ Matrix& Matrix::multiplyLeft(const Matrix &other) {
     if (sizeY_ == other.sizeX_) {
         if (buf_capacity < sizeX_*other.sizeY_) {
             delete[] buf;
-            buf = new double[sizeX_ * other.sizeY_]{0};
+            buf = new double[sizeX_ * other.sizeY_];
+            memset(buf, 0, sizeX_*other.sizeY_);
         } else {
             memset(buf, 0, buf_capacity* sizeof(double));
         }
@@ -102,7 +106,8 @@ Matrix& Matrix::multiplyRight(const Matrix &other) {
     if (sizeX_ == other.sizeY_) {
         if (buf_capacity < sizeX_*other.sizeY_) {
             delete[] buf;
-            buf = new double[sizeY_ * other.sizeX_]{0};
+            buf = new double[sizeY_ * other.sizeX_];
+            memset(buf, 0, sizeY_*other.sizeX_);
         } else {
             memset(buf, 0, buf_capacity* sizeof(double));
         }
@@ -162,7 +167,11 @@ double Matrix::norm() const {
     return std::sqrt(std::inner_product(data_, data_+sizeX_*sizeY_, data_, 0.0));
 }
 
-void Matrix::copy(const Matrix &other) {
+double Matrix::dotProduct(const Matrix &a, const Matrix &b) {
+    return std::inner_product(a.data_, a.data_+a.sizeX_*b.sizeY_, b.data_, 0.0);
+}
+
+Matrix& Matrix::copy(const Matrix &other) {
     if (buf_capacity < other.buf_capacity) {
         delete[] buf;
         buf = new double[other.buf_capacity];
@@ -175,6 +184,8 @@ void Matrix::copy(const Matrix &other) {
     std::copy(other.data_, other.data_ + sizeX_ * sizeY_, data_);
     sizeX_ = other.sizeX_;
     sizeY_ = other.sizeY_;
+
+    return *this;
 }
 
 bool Matrix::equals(const Matrix &other, double prescision) {
@@ -196,6 +207,8 @@ private:
     Matrix* A;
     Matrix* b;
     Matrix cache;
+    Matrix cacheYn;
+    Matrix cacheAyn;
     unsigned int total_iterations = 0;
     double b_norm = 0;
     double t = -0.01;
@@ -211,23 +224,23 @@ Matrix* SLESolver::resolve() {
     auto x = new Matrix(1, b->getSizeY());
     x->set(0.0, 0, 0);
     while (!finished(*x)) {
-        total_iterations++;
-        cache.copy(*x);
-        x->subtract(cache.multiplyLeft(*A)
-                            .subtract(*b)
-                            .multiplyByScalar(t));
+        cacheYn.copy(*x).multiplyLeft(*A).subtract(*b);
+        cacheAyn.copy(cacheYn).multiplyLeft(*A);
+        double tn = Matrix::dotProduct(cacheYn, cacheAyn)/Matrix::dotProduct(cacheAyn, cacheAyn);
+        x->subtract(cacheYn.multiplyByScalar(tn));
     }
     std::cout << total_iterations;
     return x;
 }
 
 bool SLESolver::finished(const Matrix& x) {
+    total_iterations++;
     cache.copy(x);
     auto p = cache.multiplyLeft(*A).subtract(*b).norm()/b_norm;
     return p < prescision;
 }
 
-SLESolver::SLESolver(Matrix *A, Matrix *b) : A(A), b(b), cache(*b){
+SLESolver::SLESolver(Matrix *A, Matrix *b) : A(A), b(b), cache(*b), cacheYn(*b), cacheAyn(*b){
     b_norm = b->norm();
 }
 
@@ -244,7 +257,6 @@ void HeatMatrixInit(Matrix& A, size_t Nx) {
 
 int main() {
     size_t Nx = 50, Ny = 50;
-    float c;
 
     Matrix b(1, Nx*Ny);
     for (size_t i = 0; i < b.getSizeX(); i++) {
@@ -257,10 +269,15 @@ int main() {
     HeatMatrixInit(A, Nx);
 
     SLESolver solver(&A, &b);
+
+    auto start = std::chrono::high_resolution_clock::now();
     auto x = solver.resolve();
+    auto end =  std::chrono::high_resolution_clock::now();
+
+    auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
     if(b.equals(x->multiplyLeft(A), 0.00001))
         std::cout << " correct\n";
+    std::cout << ms_int.count() << "ms\n ";
     delete x;
 }
-
-
