@@ -1,10 +1,8 @@
-#include <openmpi/mpi.h>
-
-MPI_ScatterV();
-MPI_Send(ptr, N, MPI_FLOAT, rank,...);
-MPI_Reduce(sendbuf, recbuf, 1, MPI_Float, MPI_SUM, 0, COMM_WORLD);
-MPI_Gather();
-MPI_Broadcast();
+//MPI_ScatterV();
+//MPI_Send(ptr, N, MPI_FLOAT, rank,...);
+//MPI_Reduce(sendbuf, recbuf, 1, MPI_Float, MPI_SUM, 0, COMM_WORLD);
+//MPI_Gather();
+//MPI_Broadcast();
 
 
 /*
@@ -18,6 +16,8 @@ MPI_Broadcast();
 #include <cstring>
 #include <numeric>
 #include <cmath>
+#include <chrono>
+#include <openmpi-x86_64/mpi.h>
 
 class Matrix
 {
@@ -27,13 +27,15 @@ public:
     ~Matrix();
 
     double norm() const;
+    static double dotProduct(const Matrix&, const Matrix&, int size, int rank);
 
-    Matrix& add(const Matrix&);
-    Matrix& subtract(const Matrix&);
-    Matrix& multiplyLeft(const Matrix&);
-    Matrix& multiplyRight(const Matrix&);
-    Matrix& multiplyByScalar(double);
-    Matrix& divideByScalar(double);
+    Matrix& add(const Matrix&, int size, int rank);
+    Matrix& subtract(const Matrix&, int size, int rank);
+    Matrix& multiplyLeft(const Matrix&, int size, int rank);
+    Matrix& multiplyRight(const Matrix&, int size, int rank);
+    Matrix& multiplyByScalar(double, int size, int rank);
+    Matrix& divideByScalar(double, int size, int rank);
+    Matrix& copy(const Matrix&, int size, int rank);
 
     bool equals(const Matrix&, double);
     void read(const char* filename);
@@ -46,6 +48,7 @@ public:
     size_t getSizeY() const;
 
 private:
+    size_t buf_capacity;
     size_t sizeX_;
     size_t sizeY_;
     double* data_;
@@ -54,13 +57,15 @@ private:
 class BadMatrixSizeException : public std::exception {
 
 };
-Matrix::Matrix(size_t x, size_t y) : sizeX_(x), sizeY_(y), data_(new double[sizeX_ * sizeY_]{0}), buf(new double[sizeX_ * sizeY_]{0}) {
+Matrix::Matrix(size_t x, size_t y) : sizeX_(x), sizeY_(y), data_(new double[sizeX_ * sizeY_]), buf(new double[sizeX_ * sizeY_]) {
+    buf_capacity = sizeX_*sizeY_;
     for (size_t i = 0; i < sizeY_; i++)
         for (size_t j = 0; j < sizeX_; j++)
             data_[i*sizeX_+j] = (i == j) ? 1 : 0;
 }
 Matrix::Matrix(const Matrix& other) : sizeX_(other.sizeX_), sizeY_(other.sizeY_),
                                       data_(new double[sizeX_ * sizeY_]), buf(new double[sizeX_ * sizeY_]) {
+    buf_capacity = sizeX_*sizeY_;
     std::copy(other.data_, other.data_+sizeX_*sizeY_, data_);
 }
 Matrix::~Matrix() {
@@ -89,8 +94,13 @@ Matrix& Matrix::subtract(const Matrix &other) {
 }
 Matrix& Matrix::multiplyLeft(const Matrix &other) {
     if (sizeY_ == other.sizeX_) {
-        delete[] buf;
-        buf = new double[sizeX_*other.sizeY_]{0};
+        if (buf_capacity < sizeX_*other.sizeY_) {
+            delete[] buf;
+            buf = new double[sizeX_ * other.sizeY_];
+            memset(buf, 0, sizeX_*other.sizeY_);
+        } else {
+            memset(buf, 0, buf_capacity* sizeof(double));
+        }
 
         for (size_t i = 0; i < other.sizeY_; i++)
             for (size_t j = 0; j < sizeX_; j++)
@@ -98,6 +108,7 @@ Matrix& Matrix::multiplyLeft(const Matrix &other) {
                     buf[i * sizeX_ + j] += other.data_[i*other.sizeX_ + k] * data_[k * sizeX_ + j];
 
         std::swap(buf, data_);
+        buf_capacity = sizeX_*sizeY_;
         sizeY_ = other.sizeY_;
     } else {
         throw BadMatrixSizeException();
@@ -106,8 +117,13 @@ Matrix& Matrix::multiplyLeft(const Matrix &other) {
 }
 Matrix& Matrix::multiplyRight(const Matrix &other) {
     if (sizeX_ == other.sizeY_) {
-        delete[] buf;
-        buf = new double[sizeY_*other.sizeX_]{0};
+        if (buf_capacity < sizeX_*other.sizeY_) {
+            delete[] buf;
+            buf = new double[sizeY_ * other.sizeX_];
+            memset(buf, 0, sizeY_*other.sizeX_);
+        } else {
+            memset(buf, 0, buf_capacity* sizeof(double));
+        }
 
         for (size_t i = 0; i < sizeY_; i++)
             for (size_t j = 0; j < other.sizeX_; j++)
@@ -115,6 +131,7 @@ Matrix& Matrix::multiplyRight(const Matrix &other) {
                     buf[i * sizeX_ + j] += data_[i * sizeX_ + k] * other.data_[k * other.sizeX_ + j];
 
         std::swap(buf, data_);
+        buf_capacity = sizeX_*sizeY_;
         sizeX_ = other.sizeX_;
     } else {
         throw BadMatrixSizeException();
@@ -163,6 +180,27 @@ double Matrix::norm() const {
     return std::sqrt(std::inner_product(data_, data_+sizeX_*sizeY_, data_, 0.0));
 }
 
+double Matrix::dotProduct(const Matrix &a, const Matrix &b) {
+    return std::inner_product(a.data_, a.data_+a.sizeX_*b.sizeY_, b.data_, 0.0);
+}
+
+Matrix& Matrix::copy(const Matrix &other) {
+    if (buf_capacity < other.buf_capacity) {
+        delete[] buf;
+        buf = new double[other.buf_capacity];
+        buf_capacity = other.buf_capacity;
+    }
+    if (sizeY_*sizeX_ < other.sizeX_* sizeX_){
+        delete data_;
+        data_ = new double [other.sizeX_*other.sizeY_];
+    }
+    std::copy(other.data_, other.data_ + sizeX_ * sizeY_, data_);
+    sizeX_ = other.sizeX_;
+    sizeY_ = other.sizeY_;
+
+    return *this;
+}
+
 bool Matrix::equals(const Matrix &other, double prescision) {
     for (size_t i = 0; i < other.sizeY_*other.sizeX_; i++)
         if (data_[i] - other.data_[i] > prescision)
@@ -177,6 +215,51 @@ void Matrix::setSizeX(size_t x) {
     sizeX_ = x;
 }
 
+class SLESolver {
+private:
+    int size;
+    int rank;
+    Matrix* A;
+    Matrix* b;
+    Matrix cache;
+    Matrix cacheYn;
+    Matrix cacheAyn;
+    unsigned int total_iterations = 0;
+    double b_norm = 0;
+    double t = -0.01;
+    double prescision = 0.00001;
+
+    bool finished(const Matrix&);
+public:
+    SLESolver(Matrix* A, Matrix* b, int size, int rank);
+    Matrix* resolve();
+};
+
+Matrix* SLESolver::resolve() {
+    auto x = new Matrix(1, b->getSizeY());
+    x->set(0.0, 0, 0);
+    while (!finished(*x)) {
+        cacheYn.copy(*x).multiplyLeft(*A).subtract(*b);
+        cacheAyn.copy(cacheYn).multiplyLeft(*A);
+        double tn = Matrix::dotProduct(cacheYn, cacheAyn)/Matrix::dotProduct(cacheAyn, cacheAyn);
+        x->subtract(cacheYn.multiplyByScalar(tn));
+    }
+    std::cout << total_iterations;
+    return x;
+}
+
+bool SLESolver::finished(const Matrix& x) {
+    total_iterations++;
+    cache.copy(x);
+    auto p = cache.multiplyLeft(*A).subtract(*b).norm()/b_norm;
+    return p < prescision;
+}
+
+SLESolver::SLESolver(Matrix *A, Matrix *b, int size, int rank) : size(size), rank(rank),
+                                A(A), b(b), cache(*b), cacheYn(*b), cacheAyn(*b) {
+    b_norm = b->norm();
+}
+
 void HeatMatrixInit(Matrix& A, size_t Nx) {
     size_t N = A.getSizeX();
     for (size_t i = 0; i < N; i++)
@@ -188,18 +271,13 @@ void HeatMatrixInit(Matrix& A, size_t Nx) {
         }
 }
 
-
 int main(int argc, char** argv) {
-    int size, rank;
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    int size, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    //На мастер ноде читается файл с матрицей и вектором
     size_t Nx = 50, Ny = 50;
-    Matrix A(Nx*Ny, Nx*Ny);
-    HeatMatrixInit(A, Nx);
-
 
     Matrix b(1, Nx*Ny);
     for (size_t i = 0; i < b.getSizeX(); i++) {
@@ -208,14 +286,21 @@ int main(int argc, char** argv) {
     b.set(-9.0, 9, 9);
     b.set(9.0, 39, 39);
 
-    //ScatterV раскидываем на все части
-    //ScatterV собираем
-    //ReduceAll для сбора нормы
-    //Gather
-    //
-    //!!!! БЕЗ ВТОРОГО СПОСОБА
-    //
+    Matrix A(Nx*Ny, Nx*Ny);
+    HeatMatrixInit(A, Nx);
+
+    SLESolver solver(&A, &b, size, rank);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto x = solver.resolve();
+    auto end =  std::chrono::high_resolution_clock::now();
+
+    auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    if(b.equals(x->multiplyLeft(A), 0.00001))
+        std::cout << " correct\n";
+    delete x;
+    std::cout << ms_int.count() << "ms\n ";
 
     MPI_Finalize();
-    return 0;
 }
