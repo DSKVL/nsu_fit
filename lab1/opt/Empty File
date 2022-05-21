@@ -1,0 +1,42 @@
+﻿68125 1
+real	16m48,124s
+user	16m47,412s
+sys	0m0,228s
+
+for OMP_NUM_THREADS in {2..8}; do time ./SLEsolverParallel >> ../Empty\ File ; done
+
+real	14m14,905s
+user	25m29,207s
+sys	3m0,183s
+
+real	11m12,861s
+user	30m11,728s
+sys	3m25,483s
+
+real	8m52,978s
+user	31m49,729s
+sys	3m39,962s
+
+real	8m19,588s
+user	37m9,508s
+sys	4m25,324s
+
+real	7m29,192s
+user	39m29,483s
+sys	5m9,618s
+
+real	8m4,196s
+user	48m22,360s
+sys	5m38,705s
+
+real	5m54,589s
+user	41m14,001s
+sys	5m37,291s
+
+68125 correct
+68125 correct
+68125 correct
+68125 correct
+68125 correct
+68125 correct
+68125 correct

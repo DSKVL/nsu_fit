@@ -7,7 +7,7 @@ typedef struct shareinfo {
     int* displacesMatrix;
     int *displacesVectors;
     int *sendCountsVectors;
-    int CurrentVectorPartSize;
+    int currentVectorPartSize;
     int currentMatrixPartSize;
 } shareinfo_t;
 
@@ -48,10 +48,10 @@ double dotProduct(const double* lVec, const double* rVec, int size) {
 }
 
 shareinfo_t getShareInfo(int dim, int rank, int size){
-    shareinfo_t res = { (int*) malloc(size * sizeof(int)),
-                        (int*) malloc(size * sizeof(int)),
-                        (int*) malloc (size * sizeof(int)),
-                        (int*) malloc (size * sizeof(int)),
+    shareinfo_t res = { (int*) calloc(size, sizeof(int)),
+                        (int*) calloc(size, sizeof(int)),
+                        (int*) calloc (size, sizeof(int)),
+                        (int*) calloc (size, sizeof(int)),
                         };
 
     int linesPerProcess = dim/size;
@@ -74,7 +74,7 @@ shareinfo_t getShareInfo(int dim, int rank, int size){
         absoluteDisplace += res.sendCountsVectors[i];
     }
 
-    res.CurrentVectorPartSize = res.sendCountsVectors[rank];
+    res.currentVectorPartSize = res.sendCountsVectors[rank];
     res.currentMatrixPartSize = res.sendCountsMatrix[rank];
     return res;
 }
@@ -89,36 +89,19 @@ void shareProblem(double* A, double* CurrentPartA, double* x, double* b, int dim
 }
 
 int solved(double* CurrentPartA, double* x, double* b, double* yPart, int dim, shareinfo_t info,int rank) {
-    printf("in solved beggining\n");
-
     double scalarPart = 0;
     double upperScalar = 0;
     double normB = 0;
 
-    mulMat(CurrentPartA, x, yPart, info.currentMatrixPartSize, dim, 1);
-    subMat(yPart, b + info.displacesMatrix[rank], 1, info.CurrentVectorPartSize);
+    mulMat(CurrentPartA, x, yPart, info.currentMatrixPartSize/dim, dim, 1);
+    subMat(yPart, b + info.displacesVectors[rank], 1, info.currentVectorPartSize);
 
-    printf("in solved before job\n");
-//    scalarPart = dotProduct(yPart, yPart, info.CurrentVectorPartSize);
-    scalarPart = 0;
-    for (int i = 0; i < info.CurrentVectorPartSize; i++) {
-        scalarPart += yPart[i] * yPart[i];
-    }
-    printf("in solved first dot pr\n");
-
+    scalarPart = dotProduct(yPart, yPart, info.currentVectorPartSize);
     MPI_Allreduce(&scalarPart, &upperScalar, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    printf("in solved first allreduce\n");
 
-    scalarPart = 0;
-    for (int i = 0; i < info.CurrentVectorPartSize; i++) {
-        scalarPart += b[info.displacesVectors[rank] + i] * b[info.displacesVectors[rank] + i];
-    }
-    printf("in solved second dot pr\n");
-
+    scalarPart = dotProduct(b + info.displacesVectors[rank], b + info.displacesVectors[rank],
+                            info.currentVectorPartSize);
     MPI_Allreduce(&scalarPart, &normB, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double crit = (upperScalar / normB);
-    printf("%lf\n", crit);
-    printf("in solved after job");
 
     return  (upperScalar / normB) < 0.000001;
 }
@@ -129,38 +112,38 @@ void solve(double* CurrentPartA, double* x, double* b, int dim, shareinfo_t info
     double upperScalar = 0;
     double lowerScalar = 0;
     double t;
-    double* y = (double*) malloc(dim * sizeof(double));
-    double* yPart = (double*) malloc(info.CurrentVectorPartSize * sizeof(double));
-    double* AyPart = (double*) malloc(info.CurrentVectorPartSize * sizeof(double));
+    double* y = (double*) calloc(dim, sizeof(double));
+    double* yPart = (double*) calloc(info.currentVectorPartSize, sizeof(double));
+    double* AyPart = (double*) calloc(info.currentVectorPartSize, sizeof(double));
 
-    printf("in solve before while\n");
 
     while (!solved(CurrentPartA, x, b, yPart, dim, info, rank)) {
-        printf("in while loop beggining\n");
-
-        MPI_Allgatherv(yPart, info.CurrentVectorPartSize, MPI_DOUBLE, y,
+        MPI_Allgatherv(yPart, info.currentVectorPartSize, MPI_DOUBLE, y,
                        info.sendCountsVectors, info.displacesVectors, MPI_DOUBLE, MPI_COMM_WORLD);
 
-        mulMat(CurrentPartA, y, AyPart, info.currentMatrixPartSize, dim, 1);
+        mulMat(CurrentPartA, y, AyPart, info.currentMatrixPartSize/dim, dim, 1);
 
-        scalarPart = dotProduct(yPart, AyPart, info.CurrentVectorPartSize);
+        scalarPart = dotProduct(yPart, AyPart, info.currentVectorPartSize);
         MPI_Allreduce(&scalarPart, &upperScalar, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-        scalarPart = dotProduct(AyPart, AyPart, info.CurrentVectorPartSize);
+        scalarPart = dotProduct(AyPart, AyPart, info.currentVectorPartSize);
         MPI_Allreduce(&scalarPart, &lowerScalar, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         t = upperScalar / lowerScalar;
 
-        mulByNum(yPart, t, 1, info.CurrentVectorPartSize);
-        MPI_Allgatherv(yPart, info.CurrentVectorPartSize, MPI_DOUBLE,
+        mulByNum(yPart, t, 1, info.currentVectorPartSize);
+        MPI_Allgatherv(yPart, info.currentVectorPartSize, MPI_DOUBLE,
                        y, info.sendCountsVectors, info.displacesVectors,
                        MPI_DOUBLE, MPI_COMM_WORLD);
 
         subMat(x, y, 1, dim);
     }
+    free(y);
+    free(yPart);
+    free(AyPart);
 }
 
 double* HeatMatrixInit(size_t dim) {
-    double* A = malloc(dim*dim * sizeof(double));
+    double* A = calloc(dim*dim, sizeof(double));
     for (size_t i = 0; i < dim; i++)
         for(size_t j = 0; j < dim; j++) {
             if (i==j) A[i*dim + j] = -4.0;
@@ -180,27 +163,22 @@ int main(int argc, char **argv) {
     double timeStart, timeEnd;
     double *A, *x, *b;
 
-    //TODO 50*50
-    int dim = 2*2;
+    int dim = 150*150;
 
-    x = (double*)malloc(dim * sizeof(double));
-    b = (double*)malloc(dim * sizeof(double));
+    x = (double*)calloc(dim, sizeof(double));
+    b = (double*)calloc(dim, sizeof(double));
     if (rank ==0) {
         A = HeatMatrixInit(dim);
-        print(A, dim, dim);
-        b[0] = -9.0;
-        b[1] = 0;
-        b[2] = 0;
-        b[3] = 0;
-        x[0] = 0; x[1] = 0; x[2] = 0; x[3] = 0;
-        //b[7 * dim + 7] = 9.0;
+        b[25 * 150 + 25] = -9.0;
+        b[125 * 150 + 125] = 9.0;
     }
 
-    timeStart = MPI_Wtime();
 
     shareinfo_t shareInfo = getShareInfo(dim, rank, size);
-    double* CurrentPartA = (double*) malloc (shareInfo.currentMatrixPartSize * sizeof(double));
+    double* CurrentPartA = (double*) calloc (shareInfo.currentMatrixPartSize, sizeof(double));
     shareProblem(A, CurrentPartA, x, b, dim, &shareInfo);
+
+    timeStart = MPI_Wtime();
 
     solve(CurrentPartA, x, b, dim, shareInfo, rank);
 
@@ -208,6 +186,18 @@ int main(int argc, char **argv) {
 
     if (rank == 0)
         printf("%lf\n", timeEnd-timeStart);
+
+    free(x);
+    free(b);
+    if (rank == 0)
+        free(A);
+    free(CurrentPartA);
+
+    free(shareInfo.sendCountsMatrix);
+    free(shareInfo.sendCountsVectors);
+    free(shareInfo.displacesVectors);
+    free(shareInfo.displacesMatrix);
+
 
     MPI_Finalize();
     return 0;
