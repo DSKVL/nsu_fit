@@ -27,7 +27,6 @@ TEST(test, first) {
 TEST(test, second) {
      stack<int> st{};
      int a = 1;
-     int b = 2;
 
      st.put(a);
 
@@ -55,6 +54,7 @@ TEST(test, second) {
     auto cc = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dur1 = cc - bb;
     std::chrono::duration<double> dur2 = bb - aa;
+    std::cout <<dur1.count()/dur2.count() << "\n";
     ASSERT_LE(dur1.count()/dur2.count(), 5);
 }
 

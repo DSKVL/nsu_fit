@@ -69,7 +69,7 @@ T& stack<T>::pop() {
 template<typename T>
 T& stack<T>::top() const {
     {
-        std::shared_lock<std::shared_mutex> locker(mutex_);
+        std::unique_lock<std::shared_mutex> locker(mutex_);
         if (size_ >= 1 ) return data_[size_-1];
     }
     {
