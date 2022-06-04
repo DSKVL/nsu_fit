@@ -1,0 +1,83 @@
+{
+  "main": {
+    "id": "96a0d8f5614dceba",
+    "type": "split",
+    "children": [
+      {
+        "id": "5fe31c52f39753e5",
+        "type": "leaf",
+        "state": {
+          "type": "graph",
+          "state": {}
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2017e8a7186d9e79",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "641742571376f486",
+        "type": "leaf",
+        "state": {
+          "type": "file-explorer",
+          "state": {}
+        }
+      },
+      {
+        "id": "dfcde10fa7d9e47f",
+        "type": "leaf",
+        "state": {
+          "type": "search",
+          "state": {
+            "query": "",
+            "matchingCase": false,
+            "explainSearch": false,
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical"
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "right": {
+    "id": "bc9ef43d941d4372",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "36b483b3aec9d1e4",
+        "type": "leaf",
+        "state": {
+          "type": "backlink",
+          "state": {
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical",
+            "showSearch": false,
+            "searchQuery": "",
+            "backlinkCollapsed": false,
+            "unlinkedCollapsed": true
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "active": "5fe31c52f39753e5",
+  "lastOpenFiles": [
+    "Descrete mathemathics/Combinatorics/Число k-размещений.md",
+    "Descrete mathemathics/Combinatorics/Разложение степеней x в укороченном факториале х.md",
+    "Descrete mathemathics/Combinatorics/Связь между числами Стирлинга.md",
+    "Descrete mathemathics/Combinatorics/Рекуррентное соотношение для чисел Cтирлинга второго рода.md",
+    "Descrete mathemathics/Combinatorics/Рекуррентное соотношение для количества разбиений числа n на k слагаемых.md",
+    "Descrete mathemathics/Combinatorics/Рекуррентное соотношение для чисел Стирлинга первого рода.md",
+    "Descrete mathemathics/Combinatorics/Число Стирлинга первого рода.md",
+    "Untitled.md",
+    "Untitled 1.md",
+    "Descrete mathemathics/Combinatorics/Числа Фибонначи.md"
+  ]
+}

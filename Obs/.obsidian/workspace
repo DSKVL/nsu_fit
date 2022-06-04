@@ -1,0 +1,103 @@
+{
+  "main": {
+    "id": "96a0d8f5614dceba",
+    "type": "split",
+    "children": [
+      {
+        "id": "b20343ee4731bfd1",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Пространство $C(Q)$.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "44e5189882a1d97c",
+    "type": "split",
+    "children": [
+      {
+        "id": "9753fd9606ca3737",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6de4987ed5cc986c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "8747f397d10af10c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 498,
+    "collapsed": true
+  },
+  "right": {
+    "id": "0ba7d6e52e2db272",
+    "type": "split",
+    "children": [
+      {
+        "id": "427a111f83468407",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7d4068558e6414da",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Пространство $C(Q)$.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "b20343ee4731bfd1",
+  "lastOpenFiles": [
+    "Пространство $C(Q)$.md",
+    "PC and periferals/Регистр.md",
+    "PC and periferals/ISA.md",
+    "Виртуальная память.md",
+    "PC and periferals/Алгоритмы замещения кэш-строк.md",
+    "PC and periferals/Множественно-ассоциативный кэш.md",
+    "PC and periferals/Способы отображения памяти на кэш.md",
+    "PC and periferals/Кэш.md",
+    "PC and periferals/Кэш-строка.md",
+    "PC and periferals/Кэш прямого отображения.md"
+  ]
+}

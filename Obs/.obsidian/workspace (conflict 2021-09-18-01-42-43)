@@ -1,0 +1,82 @@
+{
+  "main": {
+    "id": "963d546b575cbc5f",
+    "type": "split",
+    "children": [
+      {
+        "id": "a79b927c2f24c7ae",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Descrete mathemathics/Combinatorics/Формула включения-исключения.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4d17c8083d4fbd95",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "ac9cdb29bb2d340d",
+        "type": "leaf",
+        "state": {
+          "type": "file-explorer",
+          "state": {}
+        }
+      },
+      {
+        "id": "3ab63bf36b57aa56",
+        "type": "leaf",
+        "state": {
+          "type": "search",
+          "state": {
+            "query": "",
+            "matchingCase": false,
+            "explainSearch": false,
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical"
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "right": {
+    "id": "b788345c1f8ec3e4",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "cf82454b56a2c84b",
+        "type": "leaf",
+        "state": {
+          "type": "backlink",
+          "state": {
+            "file": "Descrete mathemathics/Combinatorics/Формула включения-исключения.md",
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical",
+            "showSearch": false,
+            "searchQuery": "",
+            "backlinkCollapsed": false,
+            "unlinkedCollapsed": true
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "active": "a79b927c2f24c7ae",
+  "lastOpenFiles": [
+    "Descrete mathemathics/Combinatorics/Формула включения-исключения.md",
+    "Descrete mathemathics/Combinatorics/Бином Ньютона.md",
+    "Descrete mathemathics/Combinatorics/Биномиальный коэффициент.md",
+    "Descrete mathemathics/Combinatorics/Тождество Паскаля.md",
+    "Descrete mathemathics/Combinatorics/Число сочетаний.md"
+  ]
+}

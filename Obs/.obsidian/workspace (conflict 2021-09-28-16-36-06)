@@ -1,0 +1,87 @@
+{
+  "main": {
+    "id": "96a0d8f5614dceba",
+    "type": "split",
+    "children": [
+      {
+        "id": "f6d36e2be8234930",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Графы.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4b863a3592cb8f79",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "2e2057a6c6adb968",
+        "type": "leaf",
+        "state": {
+          "type": "file-explorer",
+          "state": {}
+        }
+      },
+      {
+        "id": "1fa2ca4cb3f1c3b7",
+        "type": "leaf",
+        "state": {
+          "type": "search",
+          "state": {
+            "query": "",
+            "matchingCase": false,
+            "explainSearch": false,
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical"
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "right": {
+    "id": "145e1d5d24c185ea",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "0c65ab3424bd529f",
+        "type": "leaf",
+        "state": {
+          "type": "backlink",
+          "state": {
+            "file": "Графы.md",
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical",
+            "showSearch": false,
+            "searchQuery": "",
+            "backlinkCollapsed": false,
+            "unlinkedCollapsed": true
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "active": "f6d36e2be8234930",
+  "lastOpenFiles": [
+    "Графы.md",
+    "Untitled.md",
+    "Теорема об общем решении ЛОРС.md",
+    "Descrete mathemathics/Combinatorics/Характеристический многочлен для линейного однородного рекуррентного соотношения.md",
+    "Descrete mathemathics/Combinatorics/Линейная однородная возвратная последовательность.md",
+    "Descrete mathemathics/Combinatorics/Линейное однородное рекуррентное соотношение.md",
+    "Descrete mathemathics/Combinatorics/Числа Фибоначчи.md",
+    "Descrete mathemathics/Combinatorics/Числа Каталана.md",
+    "Descrete mathemathics/Combinatorics/Производящая функция последовательности.md",
+    "Descrete mathemathics/Combinatorics/Рекуррентное соотношение для количества разбиений числа n на k слагаемых.md"
+  ]
+}

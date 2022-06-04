@@ -1,0 +1,83 @@
+{
+  "main": {
+    "id": "96a0d8f5614dceba",
+    "type": "split",
+    "children": [
+      {
+        "id": "8c3defedea9260b4",
+        "type": "leaf",
+        "state": {
+          "type": "empty",
+          "state": {}
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e43d532ad80bc133",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "928a0a161edaf7dc",
+        "type": "leaf",
+        "state": {
+          "type": "file-explorer",
+          "state": {}
+        }
+      },
+      {
+        "id": "20c44a36d7df2c0b",
+        "type": "leaf",
+        "state": {
+          "type": "search",
+          "state": {
+            "query": "",
+            "matchingCase": false,
+            "explainSearch": false,
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical"
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "right": {
+    "id": "49d9d385675ff1af",
+    "type": "mobile-drawer",
+    "children": [
+      {
+        "id": "8f9165587462f717",
+        "type": "leaf",
+        "state": {
+          "type": "backlink",
+          "state": {
+            "collapseAll": false,
+            "extraContext": false,
+            "sortOrder": "alphabetical",
+            "showSearch": false,
+            "searchQuery": "",
+            "backlinkCollapsed": false,
+            "unlinkedCollapsed": true
+          }
+        }
+      }
+    ],
+    "currentTab": 0
+  },
+  "active": "8c3defedea9260b4",
+  "lastOpenFiles": [
+    "Пройдено на лекциях.md",
+    "Descrete mathemathics/Graphs/Независимое множество, тупиковое, наибольшее, число независимости.md",
+    "Остов, каркас.md",
+    "Descrete mathemathics/Graphs/Терема Холла о паросочетаниях.md",
+    "Descrete mathemathics/Graphs/Терема Уитни (критерий k-связности).md",
+    "Untitled.md",
+    "Descrete mathemathics/Graphs/Теорема Менгера.md",
+    "Descrete mathemathics/Graphs/Теорема о связи чисел паросочетания и реберного покрытия.md",
+    "Calculus/8.Градиент, дивергенция, ротор векторного поля. Потенциальные и соленоидальные поля..md",
+    "Calculus/6.Теорема Гаусса-Остроградского..md"
+  ]
+}
