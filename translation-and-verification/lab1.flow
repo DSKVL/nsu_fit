@@ -1,0 +1,10 @@
+import runtime;
+import string;
+
+main() {
+	integers: [int] = [1, 2, 3, 4];
+//  str: [string] =  fold(integers, [], \x, y -> arrayPush(x, i2s(y)));
+  str: [string] = map(integers, i2s); 
+
+  println(strGlue(str, ", "));
+}

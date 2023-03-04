@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5478c816-2384-4d4a-ae79-3f33d26a86b4" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.bsp/sbt.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/libraries/sbt__org_scala_lang_scala3_library_3_3_2_0_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/libraries/sbt__org_scala_lang_scala_library_2_13_8_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/libraries/sbt__org_typelevel_cats_core_3_2_8_0_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/libraries/sbt__org_typelevel_cats_kernel_3_2_8_0_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/libraries/sbt__org_typelevel_mouse_3_1_1_0_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/modules/FileSender-build.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/modules/FileSender.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/sbt.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/scala_compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/scala_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/build.sbt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/project/build.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/src/main/scala/client/Client.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/FileSender/src/main/scala/server/Server.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NetworkTechnologies/Sender/src/ru/nsu/fit/dskvl/filesender/Server.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../NumericalAnalisys/Cubic/Cubic.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/proxy/Cache.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/proxy/Proxy.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/proxy/Proxy.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/proxy/parser.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/proxy/parser.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/untitled1/picohttpparser.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/untitled1/picohttpparser.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/y/Proxy.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OS/Linux/y/Proxy.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../torrent/src/main/java/ru/nsu/fit/dskvl/torrent/Downloader.java" beforeDir="false" afterPath="$PROJECT_DIR$/../torrent/src/main/java/ru/nsu/fit/dskvl/torrent/Downloader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../torrent/src/main/java/ru/nsu/fit/dskvl/torrent/FileDownloader.java" beforeDir="false" afterPath="$PROJECT_DIR$/../torrent/src/main/java/ru/nsu/fit/dskvl/torrent/FileDownloader.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="2HoQgALK6FTu1FQcrUJdLExwTue" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "last_opened_file_path": "/home/dskvl/NSU/untitled2",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5478c816-2384-4d4a-ae79-3f33d26a86b4" name="Changes" comment="" />
+      <created>1668949064693</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1668949064693</updated>
+      <workItem from="1668949065819" duration="15000" />
+      <workItem from="1671545575361" duration="32000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

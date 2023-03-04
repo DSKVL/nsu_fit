@@ -1,0 +1,6 @@
+  digit = '0'-'9';
+  number = digit+$d { Int(s2i($d)) };
+  arithmeticExpression = number:e { :e } 
+          | (arithmeticExpression:e1 "*" arithmeticExpression:e2) { Add(:e1, :e2) } 
+          | (arithmeticExpression:e1 "+" arithmeticExpression:e2) { Mult(:e1, :e2) };
+

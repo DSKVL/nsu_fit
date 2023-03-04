@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="GameOfLife" targetName="gtest_main" />
+      <config projectName="GameOfLife" targetName="gtest" />
+      <config projectName="GameOfLife" targetName="gmock_main" />
+      <config projectName="GameOfLife" targetName="GameOfLife" />
+      <config projectName="GameOfLife" targetName="gmock" />
+      <config projectName="GameOfLife" targetName="Google_Tests_run" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+      <configuration PROFILE_NAME="Debug-Coverage" ENABLED="true" CONFIG_NAME="Debug" GENERATION_OPTIONS="-DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b2708648-f914-44c1-9f07-004054afa2d2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/snakeapp.fxml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AutomatonCalculator.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AutomatonCalculator.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Cell.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Cell.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameDumper.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameDumper.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameField.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameField.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameImporter.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameImporter.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Rule.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Rule.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/tests.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Array/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Array/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/SnakeView.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/SnakeView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/game/SnakeGameField.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/game/SnakeGameField.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/game/SnakeGamePane.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/game/SnakeGamePane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/menu/SnakeCreateGamePane.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/menu/SnakeCreateGamePane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/menu/SnakeLocalMenuPane.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../NetworkTechnologies/Snake/src/main/java/ru/nsu/fit/dskvl/snake/visuals/menu/SnakeLocalMenuPane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../client/.idea/client.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../proxy/.idea/proxy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../proxy/.idea/proxy.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../proxy/headers/ClientConnection.h" beforeDir="false" afterPath="$PROJECT_DIR$/../proxy/headers/ClientConnection.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../proxy/sources/ClientConnection.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../proxy/sources/ClientConnection.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../proxy/sources/Proxy.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../proxy/sources/Proxy.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../proxy/sources/ServerConnection.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../proxy/sources/ServerConnection.cpp" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug-Coverage" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CMakeLists.txt" />
+      </list>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2022" />
+    <option name="minorVersion" value="3.1" />
+  </component>
+  <component name="ProjectId" id="2Ku8TUZT2ImG86jrpYqEX4sVIVg" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.advertisement.text.has.clang-format": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "last_opened_file_path": "/home/dskvl/NSU/EPMMM/lab2/simd/main.cpp",
+    "structure.view.defaults.are.configured": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/lib" />
+      <recent name="$PROJECT_DIR$/tests" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Google Test.Google_Tests_run">
+    <configuration name="Google_Tests_run" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="Google_Tests_run" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="GameOfLife" RUN_TARGET_NAME="Google_Tests_run" TEST_MODE="SUITE_TEST">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="BeforeTestRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GameOfLife" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="testcfg" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="GameOfLife" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="GameOfLife" RUN_TARGET_NAME="GameOfLife">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="gmock" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="gmock" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="gmock_main" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="gmock_main" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="gtest" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="gtest" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="gtest_main" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameOfLife" TARGET_NAME="gtest_main" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.GameOfLife" />
+      <item itemvalue="CMake Application.gmock" />
+      <item itemvalue="CMake Application.gmock_main" />
+      <item itemvalue="CMake Application.gtest" />
+      <item itemvalue="CMake Application.gtest_main" />
+      <item itemvalue="Google Test.Google_Tests_run" />
+    </list>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b2708648-f914-44c1-9f07-004054afa2d2" name="Changes" comment="" />
+      <created>1674813114617</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1674813114617</updated>
+      <workItem from="1674813116150" duration="11974000" />
+      <workItem from="1674833031891" duration="11669000" />
+      <workItem from="1676722490645" duration="999000" />
+      <workItem from="1676723647375" duration="12216000" />
+      <workItem from="1676765913795" duration="3579000" />
+      <workItem from="1677727696709" duration="17000" />
+    </task>
+    <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/tests/tests.cpp</url>
+          <line>100</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/GameImporter.cpp</url>
+          <line>52</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/GameImporter.cpp</url>
+          <line>30</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="../../../NSU/OS/Linux/GameOfLife/cmake-build-debug-coverage" NAME="Google_Tests_run Coverage Results" MODIFIED="1676773189985" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="gcov/llvm" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+</project>

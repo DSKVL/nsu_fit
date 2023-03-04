@@ -1,0 +1,32 @@
+Member functions:
+bool insert(Key& k, Value& v)		inserts elements, returns false in case 
+									it contains same key
+
+bool erase(Key& k)					erases elements, returns false in case
+									it does not contains elements with this
+									key
+
+void clear()						clears container
+
+bool contains(Key& k)				checks if contains element with this key
+
+Value& operator[](Key& k)			returns element associated with this key
+									,unsafe
+
+Value& at(Key& k)					returns element associated with this key
+									throws exception if there is no elements					
+									associated with this key
+
+void swap(FlatMap<Key, Value> other)	
+									swaps two FlatMaps
+
+FlatMap<Key, Value>& operator=(FlatMap<Key, Value>& other)
+									creates another instance of b and
+									assigns it to this
+
+size_t size()						returns size
+
+bool empty()						checks if container is empty 
+
+					
+

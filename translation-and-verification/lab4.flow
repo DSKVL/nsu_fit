@@ -1,0 +1,22 @@
+import ds/tree;
+import ds/array;
+
+findPairs: ([int], int) -> [Pair<int, int>];
+findPairs(data, m) {
+  tree = foldi(data, makeTree(), \index, tree, x-> {
+    treePushToArrayValue(tree, m-x, index);
+  });
+ 
+  foldi(data, [], \index, result, x-> {
+    if (containsKeyTree(tree, x)) 
+      fold(getTreeArrayValue(tree, x), result, 
+        \res, ind -> if (index != ind) arrayPush(res, Pair(index, ind)) 
+                     else res)
+    else result;
+  });
+}
+
+main() {
+  data = [4, 2, 1, 3, 0, 5, 1, 2, 3];
+  findPairs(data, 4) |> println;
+}

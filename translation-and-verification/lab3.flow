@@ -1,0 +1,49 @@
+import string;
+
+recursive: (int) -> [int];
+recursive(i) {
+  if (i <=0) [] 
+  else if(i==1) [0] 
+  else if(i==2) [0, 1] 
+  else arrayPush(recursive(i-1),
+    recursive(i-1)[i-2] + recursive(i-1)[i-3]);
+}
+
+tailRecursion: (int, [int]) -> [int];
+tailRecursion(i, arr) {
+  if (i<=2) arr
+  else tailRecursion(i-1, arrayPush(arr, arr[length(arr)-1] + arr[length(arr)-2]));
+}
+
+tailFib: (int) -> [int];
+tailFib(i) {
+  if (i==0) [] 
+  else if(i==1) [0] 
+  else if(i==2) [0, 1] 
+  else tailRecursion(i, [0, 1]);
+}
+
+refer: (int, ref[int]) -> ref[int];
+refer(i, res) {
+  len = length(^res);
+  if (len < i) {
+    refArrayPush(res, (^res)[len - 1] + (^res)[len - 2]);
+    refer(i, res);
+  }
+  else res;
+}
+
+refFib: (int) -> [int];
+refFib(i) {
+  if (i==0) [] 
+  else if(i==1) [0] 
+  else if(i==2) [0, 1] 
+  else {
+    arr = refer(i, ref [0, 1]);
+    ^arr;
+  }
+}
+
+main() {
+  println(refFib(7));
+}
