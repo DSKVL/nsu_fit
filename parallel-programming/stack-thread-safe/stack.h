@@ -1,7 +1,3 @@
-//
-// Created by dskvl on 5/25/22.
-//
-
 #ifndef LAB6_STACK_H
 #define LAB6_STACK_H
 #include <shared_mutex>
