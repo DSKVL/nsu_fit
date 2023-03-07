@@ -1,0 +1,23 @@
+import HeMo/HeMoZ3;
+
+main() {
+    data = "VAR x: INT; VAR y: INT; VAR z: INT; 
+    @(z > 0) $=> x*x <= z AND (x+1)*(x+1) > z
+    {
+        x:=1;
+        y:=1;
+        @ ( (y=x*x) AND ((x-1)*(x-1) <= z) ) { 
+            (y <= z)?;
+            y:=y+2*x+1; 
+            x:=x+1; 
+        }*; 
+        (NOT y <= z)?;
+        x:=x-1;
+    }";
+
+    test = \d-> d |> parseHeMo 
+            |> getZ3
+            |> println;
+    
+    test(data);
+}

@@ -1,0 +1,394 @@
+import string;
+import lingo/pegcode/driver;
+import sys/system;
+import ds/tree;
+
+export {
+ArithmeticExpr ::= Monoid, Sub, Div, Var, Int, Neg;
+    Sub : (e1: Expr, e2: Expr);
+	Div : (e1: Expr, e2: Expr);
+	Neg : (e1: ArithmeticExpr);
+	Int : (e1: int);
+	Var : (e1: string);
+
+Monoid ::= Add, Mul;
+	Add : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+    Mul : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+
+    lingoGrammar: ()->[PegOp];
+    parse: (string) -> flow;
+    getVarList: (ArithmeticExpr)->[string];
+    expToString: (ArithmeticExpr) -> string;
+    bind(f : (?) -> Maybe<??>)-> (m : Maybe<?>) -> Maybe<??>;
+}
+
+lingoGrammarOp: ref Maybe<[PegOp]> = ref None();
+lingoGrammar() {
+	onlyOnce(lingoGrammarOp, \ -> {
+		compilePegGrammar("#include exprDer.lingo");
+	});
+}
+parse(source: string) {
+	parsic(lingoGrammar(), source, defaultPegActions);
+}
+
+getVarList(ex: ArithmeticExpr) {
+	switch (ex) {
+	  	Int(i): [];
+	  	Neg(e): getVarList(e);
+	  	Mul(l, r): concat(getVarList(l), getVarList(r));
+	  	Div(l, r): concat(getVarList(l), getVarList(r));
+	  	Add(l, r): concat(getVarList(l), getVarList(r));
+	  	Sub(l, r): concat(getVarList(l), getVarList(r));
+	  	Var(v): [v];
+	}
+}
+
+expToString(ex:ArithmeticExpr) {
+	switch (ex) {
+	  	Int(i): i2s(i);
+	  	Neg(e): "(-" + expToString(e) + ")";
+	  	Mul(l, r): "(" + expToString(l) + "*" + expToString(r) + ")";
+	  	Div(l, r): "(" + expToString(l) + "/" + expToString(r) + ")";
+	  	Add(l, r): "(" + expToString(l) + "+" + expToString(r) + ")";
+	  	Sub(l, r): "(" + expToString(l) + "-" + expToString(r) + ")";
+	  	Var(v): v; 
+	}
+}
+
+
+deriveAdd: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveAdd(l: ArithmeticExpr, r: ArithmeticExpr, var: string) {
+    lvars = getVarList(l);
+    rvars = getVarList(r);
+    newl = if (contains(lvars, var)) derive(l, var) else Int(0);
+    newr = if (contains(rvars, var)) derive(r, var) else Int(0);
+    simplify(Add(newl, newr));
+}
+
+deriveSub: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveSub(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    lvars = getVarList(l);
+    rvars = getVarList(r);
+    newl = if (contains(lvars, var)) derive(l, var) else Int(0);
+    newr = if (contains(rvars, var)) derive(r, var) else Int(0);
+    simplify(Sub(newl, newr));
+}
+
+deriveMul: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveMul(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    simplify(Add(Mul(l, derive(r, var)), 
+                 Mul(derive(l, var), r)));
+    
+}
+deriveDiv: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveDiv(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    simplify(Div(Sub(Mul(derive(l, var), r), 
+                     Mul(l, derive(r, var))), 
+                 Mul(r, r)));
+}
+
+derive: (ArithmeticExpr, string) -> ArithmeticExpr;
+derive(ex: ArithmeticExpr, var: string) {
+    switch (ex) {
+	  	Neg(e): Neg(derive(e, var));
+	  	Mul(l, r): deriveMul(l, r, var);
+	  	Div(l, r): deriveDiv(l, r, var);
+	  	Add(l, r): deriveAdd(l, r, var);
+	  	Sub(l, r): deriveSub(l, r, var);
+	  	Var(v): if (v == var) Int(1) else Int(0);
+        default: ex;
+	}
+}
+
+isTrivial(l: ArithmeticExpr, r: ArithmeticExpr, identity: ArithmeticExpr) {
+    (l == identity) || (r == identity) 
+}
+
+simplifyTrivialSub(l: ArithmeticExpr, r: ArithmeticExpr) {
+    if (isTrivial(l,r, Int(0)))
+        if (l == Int(0)) Neg(r)
+        else l
+    else Sub(l,r);
+}
+
+simplifyMonoid(ex: Monoid, identity: ArithmeticExpr) {
+    l = simplify(ex.e1);
+    r = simplify(ex.e2);
+    if (isTrivial(l, r, identity))
+        if (l == identity) r 
+        else l
+    else switch(ex) {
+        Add(w, q): Add(l, r);
+        Mul(w, q): Mul(l, r);
+    };
+}
+
+simplify(ex:ArithmeticExpr) {
+    switch (ex) {
+        Neg(e): {
+            s = simplify(e);
+            if (s ==  Int(0)) Int (0) else Neg(s);
+        }
+	  	Mul(l, r): simplifyMonoid(ex, Int(1));
+	  	Add(l, r): simplifyMonoid(ex, Int(0));
+	  	Sub(l, r): simplifyTrivialSub(simplify(l), simplify(r));
+        Div(l, r): {
+            ls = simplify(l);
+            rs = simplify(r);
+            if (ls == Int(0)) Int(0)
+            else if (rs == Int(1)) ls
+            else Div(ls, rs);
+        }
+	  	default: ex;
+    }
+}
+
+addRationals: (Div, Div) -> Div;
+addRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Add(Mul(ll, rr), 
+            Mul(lr, rl)),
+        Mul(lr, rr));
+}
+
+subRationals: (Div, Div) -> Div;
+subRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Sub(Mul(ll, rr), 
+            Mul(lr, rl)),
+        Mul(lr, rr));
+}
+
+mulRationals: (Div, Div) -> Div;
+mulRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Mul(ll, rl), Mul(lr, rr));
+}
+
+divRationals: (Div, Div) -> Div;
+divRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Mul(ll,rr), Mul(lr, rl));
+}
+
+rationalise: (ArithmeticExpr) -> Div;
+rationalise(ex: ArithmeticExpr) {
+    switch (ex) {
+        Add(l, r): addRationals(rationalise(l), rationalise(r));
+        Sub(l, r): subRationals(rationalise(l), rationalise(r));
+        Mul(l, r): mulRationals(rationalise(l), rationalise(r));
+        Div(l, r): divRationals(rationalise(l), rationalise(r));
+        default: Div(ex, Int(1));
+    }
+}
+
+bind(f : (?) -> Maybe<??>)-> (m : Maybe<?>) -> Maybe<??> {
+    \m1-> maybeBind(m1, f);
+}
+ArithmeticExpr ::= Monoid, Sub, Div, Var, Int, Neg;
+    Sub : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+	Div : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+	Neg : (e1: ArithmeticExpr);
+	Int : (e1: int);
+	Var : (e1: string);
+
+Monoid ::= Add, Mul;
+	Add : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+    Mul : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+
+    lingoGrammar: ()->[PegOp];
+    parse: (string) -> flow;
+    getVarList: (ArithmeticExpr)->[string];
+    expToString: (ArithmeticExpr) -> string;
+    bind(f : (?) -> Maybe<??>)-> (m : Maybe<?>) -> Maybe<??>;
+}
+
+lingoGrammarOp: ref Maybe<[PegOp]> = ref None();
+lingoGrammar() {
+	onlyOnce(lingoGrammarOp, \ -> {
+		compilePegGrammar("#include exprDer.lingo");
+	});
+}
+parse(source: string) {
+	parsic(lingoGrammar(), source, defaultPegActions);
+}
+
+getVarList(ex: ArithmeticExpr) {
+	switch (ex) {
+	  	Int(i): [];
+	  	Neg(e): getVarList(e);
+	  	Mul(l, r): concat(getVarList(l), getVarList(r));
+	  	Div(l, r): concat(getVarList(l), getVarList(r));
+	  	Add(l, r): concat(getVarList(l), getVarList(r));
+	  	Sub(l, r): concat(getVarList(l), getVarList(r));
+	  	Var(v): [v];
+	}
+}
+
+expToString(ex:ArithmeticExpr) {
+	switch (ex) {
+	  	Int(i): i2s(i);
+	  	Neg(e): "(-" + expToString(e) + ")";
+	  	Mul(l, r): "(" + expToString(l) + "*" + expToString(r) + ")";
+	  	Div(l, r): "(" + expToString(l) + "/" + expToString(r) + ")";
+	  	Add(l, r): "(" + expToString(l) + "+" + expToString(r) + ")";
+	  	Sub(l, r): "(" + expToString(l) + "-" + expToString(r) + ")";
+	  	Var(v): v; 
+	}
+}
+
+
+deriveAdd: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveAdd(l: ArithmeticExpr, r: ArithmeticExpr, var: string) {
+    lvars = getVarList(l);
+    rvars = getVarList(r);
+    newl = if (contains(lvars, var)) derive(l, var) else Int(0);
+    newr = if (contains(rvars, var)) derive(r, var) else Int(0);
+    simplify(Add(newl, newr));
+}
+
+deriveSub: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveSub(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    lvars = getVarList(l);
+    rvars = getVarList(r);
+    newl = if (contains(lvars, var)) derive(l, var) else Int(0);
+    newr = if (contains(rvars, var)) derive(r, var) else Int(0);
+    simplify(Sub(newl, newr));
+}
+
+deriveMul: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveMul(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    simplify(Add(Mul(l, derive(r, var)), 
+                 Mul(derive(l, var), r)));
+    
+}
+deriveDiv: (ArithmeticExpr, ArithmeticExpr, string) -> ArithmeticExpr;
+deriveDiv(l: ArithmeticExpr, r:ArithmeticExpr, var: string) {
+    simplify(Div(Sub(Mul(derive(l, var), r), 
+                     Mul(l, derive(r, var))), 
+                 Mul(r, r)));
+}
+
+derive: (ArithmeticExpr, string) -> ArithmeticExpr;
+derive(ex: ArithmeticExpr, var: string) {
+    switch (ex) {
+	  	Neg(e): Neg(derive(e, var));
+	  	Mul(l, r): deriveMul(l, r, var);
+	  	Div(l, r): deriveDiv(l, r, var);
+	  	Add(l, r): deriveAdd(l, r, var);
+	  	Sub(l, r): deriveSub(l, r, var);
+	  	Var(v): if (v == var) Int(1) else Int(0);
+        default: ex;
+	}
+}
+
+isTrivial(l: ArithmeticExpr, r: ArithmeticExpr, identity: ArithmeticExpr) {
+    (l == identity) || (r == identity) 
+}
+
+simplifyTrivialSub(l: ArithmeticExpr, r: ArithmeticExpr) {
+    if (isTrivial(l,r, Int(0)))
+        if (l == Int(0)) Neg(r)
+        else l
+    else Sub(l,r);
+}
+
+simplifyMonoid(ex: Monoid, identity: ArithmeticExpr) {
+    l = simplify(ex.e1);
+    r = simplify(ex.e2);
+    if (isTrivial(l, r, identity))
+        if (l == identity) r 
+        else l
+    else switch(ex) {
+        Add(w, q): Add(l, r);
+        Mul(w, q): Mul(l, r);
+    };
+}
+
+simplify(ex:ArithmeticExpr) {
+    switch (ex) {
+        Neg(e): {
+            s = simplify(e);
+            if (s ==  Int(0)) Int (0) else Neg(s);
+        }
+	  	Mul(l, r): simplifyMonoid(ex, Int(1));
+	  	Add(l, r): simplifyMonoid(ex, Int(0));
+	  	Sub(l, r): simplifyTrivialSub(simplify(l), simplify(r));
+        Div(l, r): {
+            ls = simplify(l);
+            rs = simplify(r);
+            if (ls == Int(0)) Int(0)
+            else if (rs == Int(1)) ls
+            else Div(ls, rs);
+        }
+	  	default: ex;
+    }
+}
+
+addRationals: (Div, Div) -> Div;
+addRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Add(Mul(ll, rr), 
+            Mul(lr, rl)),
+        Mul(lr, rr));
+}
+
+subRationals: (Div, Div) -> Div;
+subRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Sub(Mul(ll, rr), 
+            Mul(lr, rl)),
+        Mul(lr, rr));
+}
+
+mulRationals: (Div, Div) -> Div;
+mulRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Mul(ll, rl), Mul(lr, rr));
+}
+
+divRationals: (Div, Div) -> Div;
+divRationals(l: Div, r: Div) {
+    ll = l.e1;
+    lr = l.e2;
+    rl = r.e1;
+    rr = r.e2;
+    Div(Mul(ll,rr), Mul(lr, rl));
+}
+
+rationalise: (ArithmeticExpr) -> Div;
+rationalise(ex: ArithmeticExpr) {
+    switch (ex) {
+        Add(l, r): addRationals(rationalise(l), rationalise(r));
+        Sub(l, r): subRationals(rationalise(l), rationalise(r));
+        Mul(l, r): mulRationals(rationalise(l), rationalise(r));
+        Div(l, r): divRationals(rationalise(l), rationalise(r));
+        default: Div(ex, Int(1));
+    }
+}
+
+bind(f : (?) -> Maybe<??>)-> (m : Maybe<?>) -> Maybe<??> {
+    \m1-> maybeBind(m1, f);
+}

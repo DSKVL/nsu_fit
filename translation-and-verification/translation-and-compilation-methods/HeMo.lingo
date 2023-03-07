@@ -1,0 +1,78 @@
+s = ws vardecllist:v program:p          { buildProgram(:v, :p) };
+
+ws = (' ' | '\t' | '\n' | '\r')*;
+vardecllist = vardecl*;
+vardecl = 'VAR' ws variable:v ws":" ws type:t ws ";" ws { VariableDeclaration(:v, :t) };
+variable = (('a'-'z')+('0'-'9')*)$v                     { Var($v) };
+type = inttype:d ws "ARRAY" ws "OF" ws type:c           { ArrayType(:d, :c) }
+    | inttype:t                                         { :t };
+inttype = "INT":t                                       { IntType() } 
+    | "(" ws type:t ws ")"                              { :t };
+
+program = annotatedProgram | body;
+
+annotatedProgram = "@" ws formula:precond "$=>" ws formula:postcond body:b {AnnotatedProgram(:precond, :postcond, :b)};
+
+body = annotatedIteration | assignment | test | iteration | selection | sequence;
+//annotatedwhile = "@" ws "(" ws formula:inv ")" ws while:w { buildAnnotatedWhile(:inv, :w) };
+//while = "WHILE" ws propositionalformula:cond sequence:seq{ buildWhile(:cond, :seq) };
+assignment = variable:v ws ":=" ws expression:e ws      { Assignment(:v, :e) };
+test = "(" ws propositionalformula:f ")" ws "?" ws      { Test( :f ) };
+annotatedIteration = "@" ws "(" ws formula:inv ")" ws iteration:it {buildAnnotatedIteration(:it, :inv)};
+iteration = "{" ws sequenceBody*:bs "}" ws "*" ws       { buildIteration(:bs) };
+selection = "{" ws body:b selectionBody*:bs "}" ws      { buildSelection( :b, :bs ) };
+selectionBody = "U" ws body:b                           { :b }; 
+sequence= "{" ws sequenceBody*:bs "}" ws                { Sequence(:bs) };
+sequenceBody = body:b ";" ws                            { :b };
+
+formula = biconditional;
+propositionalformula = propor;
+
+biconditional = conditional:f1 "<=>" ws biconditional:f2{ buildBiconditional(:f1, :f2)}
+    | conditional;
+conditional = or:ant "=>" ws conditional:cond              { Conditional(:ant, :cond)}
+    | or;
+or = and:f1 "OR" ws or:f2                                  { Or(:f1, :f2) }
+    | and;        
+and = latom:f1 "AND" ws and:f2                             { And(:f1, :f2) }
+    | latom;
+latom = negation | forall | exists | predicate | "(" ws formula:f ")" ws { :f };
+negation = "NOT" ws formula:f                           { LNeg(:f) };
+forall = "ALL" ws variable:v ws formula:cond            { ForAll(:v, :cond)};
+exists = "EXISTS" ws variable:v ws formula:cond         { Exists(:v, :cond)};
+
+propor = propand:f1 "OR" ws propor:f2                      { POr(:f1, :f2) }
+    | propand;        
+propand = propatom:f1 "AND" ws  propand:f2                  { PAnd(:f1, :f2) }
+    | propatom;
+propatom = propnegation | predicate | "(" ws propositionalformula:f ")" ws { :f };
+propnegation = "NOT" ws propositionalformula:f          { PNeg(:f) };
+
+arithmetic_expr = sum;
+sum = prod:e1 ws '+' ws sum:e2                          { Add(:e1, :e2) } 
+    | prod:e1 ws '-' ws sum:e2                          { Sub(:e1, :e2) } 
+    | prod;
+prod =  atom:e1 ws '*' ws prod:e2                        { Mul(:e1, :e2) } 
+    | atom:e1 ws '/' ws prod:e2                          { Div(:e1, :e2) }
+    | atom;
+atom ='(' ws arithmetic_expr:e ')' { :e } 
+    | '-' ws arithmetic_expr:e { Neg(:e) }
+    | number
+    | variable
+    | arrayaccess;
+number = ('0'-'9')+$d                                   { Int(s2i($d)) };
+arrayaccess = "APP" ws "(" ws array_expr:v "," ws expression:at ws ")" { ArrayAccess(:v, :at)};
+
+expression = arithmetic_expr | array_expr;
+
+array_expr = "UPD" ws "(" ws array_expr:v "," ws expression:at ws "," ws expression:to ws ")" { ArrayUpdate(:v, :at, :to )}
+    | arrayaccess
+    | variable;
+
+predicate = eq | neq | le | l | ge | g;
+eq = arithmetic_expr:e1 ws "=" ws arithmetic_expr:e2 ws { Eq(:e1, :e2) };
+neq = arithmetic_expr:e1 ws "!=" ws arithmetic_expr:e2 ws { Neq(:e1, :e2) };
+le = arithmetic_expr:e1 ws "<=" ws arithmetic_expr:e2 ws { Le(:e1, :e2) };
+l = arithmetic_expr:e1 ws "<" ws arithmetic_expr:e2 ws { L(:e1, :e2) };
+ge = arithmetic_expr:e1 ws ">=" ws arithmetic_expr:e2 ws { Ge(:e1, :e2) };
+g = arithmetic_expr:e1 ws ">" ws arithmetic_expr:e2 ws { G(:e1, :e2) };

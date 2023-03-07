@@ -1,0 +1,8 @@
+rpn = atom+ ;
+atom =    ws '*' { Mul() }
+        | ws '+' { Add() }
+        | ws number ;
+number = ('0'-'9')+$d { Int(s2i($d)) };
+
+ws = s*;
+s = ' ' | '\t' | '\n';

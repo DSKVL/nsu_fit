@@ -1,0 +1,194 @@
+import ds/tree;
+import HeMo/HeMo;
+
+export {
+translateHeMo: (HeMoSyntaxTree) -> Pair<Configuration, HeMoBytecode>;
+ppHeMoBytecode: (HeMoBytecode) -> string;
+ppHeMoObject: (HeMoObject) -> string;
+ppConfiguration: (Configuration) -> string;
+ppFormula: (Formula) -> string;
+HeMoBytecode(ops:Tree<int, [Operator]>);
+	Operator::= MarkedAssignment, MarkedJump;
+		MarkedAssignment(op:Assignment, to: Set<int>);
+		MarkedJump(condition: PropositionalFormula, ifTrue: Set<int>, ifFalse: Set<int>);
+
+HeMoObject::= VMArray, VMInt;
+    VMArray(elements: Tree<HeMoObject, HeMoObject>);
+    VMInt(i: int);
+
+Configuration(state: Tree<Var, HeMoObject>, label: int);
+
+}
+
+//pp section
+ppConfiguration(configuration: Configuration) {
+	concatStrings(concatA([ [i2s(configuration.label)], ["; "], 
+		map(tree2pairs(configuration.state), \pair-> concatStrings([pair.first.e1, ": ", ppHeMoObject(pair.second), ",  "]))]));
+}
+
+ppHeMoObject(obj: HeMoObject) {
+    switch(obj) {
+		VMArray(elements): foldTree(elements, "\n", 
+			\key, value, res -> concatStrings(["(", ppHeMoObject(key), ": ", ppHeMoObject(value), ") \n" ]));
+		VMInt(i): i2s(i);
+	}
+}
+
+ppHeMoTerm(term: HeMoTerm) -> string {
+	switch(term) {
+		ArrayUpdate(n, a, t): concatStrings(["UPD(", ppHeMoTerm(n), ", ", ppHeMoTerm(a), ", ", ppHeMoTerm(t), ")"]);
+		ArrayAccess(n, a): concatStrings(["ACC(", ppHeMoTerm(n), ", ", ppHeMoTerm(a), ")"]);
+		Int(i): i2s(i);
+	  	Neg(e): "(-" + ppHeMoTerm(e) + ")";
+	  	Mul(l, r): "(" + ppHeMoTerm(l) + "*" + ppHeMoTerm(r) + ")";
+	  	Div(l, r): "(" + ppHeMoTerm(l) + "/" + ppHeMoTerm(r) + ")";
+	  	Add(l, r): "(" + ppHeMoTerm(l) + "+" + ppHeMoTerm(r) + ")";
+	  	Sub(l, r): "(" + ppHeMoTerm(l) + "-" + ppHeMoTerm(r) + ")";
+	  	Var(v): v; 
+	}
+}
+
+ppPredicate(p: Predicate) {
+	switch (p) {
+		Eq(e1, e2): concatStrings([ppHeMoTerm(e1), " = ", ppHeMoTerm(e2)]);
+		Neq(e1, e2): concatStrings([ppHeMoTerm(e1), " != ", ppHeMoTerm(e2)]);
+		Le(e1, e2): concatStrings([ppHeMoTerm(e1), " <= ", ppHeMoTerm(e2)]);
+		L(e1, e2): concatStrings([ppHeMoTerm(e1), " < ", ppHeMoTerm(e2)]);
+		Ge(e1, e2): concatStrings([ppHeMoTerm(e1), " >= ", ppHeMoTerm(e2)]);
+		G(e1, e2): concatStrings([ppHeMoTerm(e1), " > ", ppHeMoTerm(e2)]);
+		True(): "true";
+		False(): "false";
+	}
+}
+
+ppPropositionalFormula(f: PropositionalFormula) {
+	switch(f) {
+		PNeg(formula): concatStrings(["NOT ", ppPropositionalFormula(formula)]);
+		PAnd(l, r): concatStrings([ppPropositionalFormula(l), " AND ", ppPropositionalFormula(r)]);
+		POr(l, r): concatStrings([ppPropositionalFormula(l), " OR ", ppPropositionalFormula(r)]);
+		Predicate(): ppPredicate(f);
+	}
+}
+
+ppFormula(f: Formula) {
+	switch(f) {
+		LNeg(formula): concatStrings(["NOT ", ppFormula(formula)]);
+		And(l, r): concatStrings([ppFormula(l), " AND ", ppFormula(r)]);
+		Or(l, r): concatStrings([ppFormula(l), " OR ", ppFormula(r)]);
+		ForAll(v, condition): concatStrings(["ALL", " ", v.e1, " ", ppFormula(condition)]);
+        Exists(v, condition): concatStrings(["EXISTS", " ", v.e1, " ", ppFormula(condition)]);
+        Conditional(antecedent, consequent):concatStrings([ppFormula(antecedent), " => ", ppFormula(consequent)]);
+		PropositionalFormula(): ppPropositionalFormula(f);
+	}
+}
+
+ppOperator(op: Operator) {
+	printSet = \to-> if (isEmptySet(to)) "{}" else concatStrings(["{ ", foldSet(to, "", 
+		\s, i->concatStrings([s, i2s(i), " "])) ,"}"]);
+	switch (op) {
+		MarkedAssignment(as, to): concatStrings([as.variable.e1, " := ", 
+			ppHeMoTerm(as.expr), " goto ", printSet(to)]);
+		MarkedJump(cond, t, f): concatStrings(["if (", ppPropositionalFormula(cond), ") then ", 
+			printSet(t), " else ", printSet(f)]);
+	}
+}
+
+ppHeMoBytecode(tree) {
+	foldTree(tree.ops, "", \label, operators, res -> 
+		fold(operators, res, \resInner, operator-> 
+			concatStrings([res, i2s(label), ": ", ppOperator(operator), "\n"])));
+}
+//Semantic translation operations 
+maxLabel(ops: Tree<int, [Operator]>) { 
+	maxLabelOperators = \opsArray -> fold(opsArray, 0, \maxR, op-> {
+		maxSet = \s -> foldSet(s, maxR, max);
+		switch(op) {
+			MarkedAssignment(_, to): maxSet(to);
+			MarkedJump(_, ifTrue, ifFalse): max(maxSet(ifTrue), maxSet(ifFalse));
+	}});
+	foldTree(ops, 0, \key, value, maxR-> max3(maxR, key, maxLabelOperators(value))) }
+
+incrementLabels(ops:  Tree<int, [Operator]>, inc: int) {
+	incSet = \labels-> mapSet(labels, \x->x+inc);
+	incLabelsOperators = \opsArray -> map(opsArray, 
+		\op -> switch (op) {
+			MarkedAssignment(as, to): MarkedAssignment(as, incSet(to)); 
+			MarkedJump(cond, ifTrue, ifFalse): MarkedJump(cond, incSet(ifTrue), incSet(ifFalse));
+		});
+
+	foldTree(ops, makeTree(), \key, values, 
+		newTree-> setTree(newTree, key+inc, incLabelsOperators(values))) 
+}
+
+replaceLabels(ops:  Tree<int, [Operator]>, what: int, to: int) {
+	replace = \x-> if (x==what) to else x;
+	replaceLabelsOperators = \opsArray -> map(opsArray, \op ->switch (op) {
+		MarkedAssignment(as, set): MarkedAssignment(as, mapSet(set, replace)); 
+		MarkedJump(cond, ifTrue, ifFalse): MarkedJump(cond, mapSet(ifTrue, replace), mapSet(ifFalse, replace));
+	});
+	foldTree(ops, makeTree(), \key, value, newTree-> 
+		setTree(newTree, if (key==what) to else key, replaceLabelsOperators(value))) 
+}
+//Semantics
+buildSemantics: (Body) -> Tree<int, [Operator]>;
+
+assignmentSemantics(as: Assignment) -> Tree<int, [Operator]> {
+	treePushToArrayValue(makeTree(), 0, MarkedAssignment(as, makeSet1(1))) }
+testSemantics(formula: PropositionalFormula) -> Tree<int, [Operator]> {
+	treePushToArrayValue(makeTree(), 0, MarkedJump(formula, makeSet1(1), makeSet())) }
+sequenceSemantics(ops:[Body]) -> Tree<int, [Operator]> {
+	fold(ops, makeTree(), \prevSemantics, op -> {
+		prevMax = maxLabel(prevSemantics);
+		opSemantics = incrementLabels(buildSemantics(op), prevMax);
+		mergeTree(prevSemantics, opSemantics);
+	}) 
+}
+selectionSemantics(ops: [Body]) -> Tree<int, [Operator]> {
+	fold(ops, makeTree(), \prevSemantics, op-> {
+		prevSemantics1 = incrementLabels(prevSemantics, 1);
+		prevMax = maxLabel(prevSemantics1);
+		opSemantics = incrementLabels(buildSemantics(op), prevMax);
+		opMax = maxLabel(opSemantics);
+		
+		treePushToArrayValue(
+			mergeTree(opSemantics, replaceLabels(prevSemantics1, prevMax, opMax)),
+			0, MarkedJump(True(), buildSet([1, prevMax]), makeSet())
+		)
+	}) 
+}
+iterationSemantics(ops: Body) -> Tree<int, [Operator]> {
+	sem = incrementLabels(buildSemantics(ops), 1);
+	maxLab = maxLabel(sem);
+	treePushToArrayValue( replaceLabels(sem, maxLab, 0),
+		0, MarkedJump(True(), buildSet([1, maxLab]), makeSet()))
+}
+
+buildSemantics(b: Body) {
+	switch (b) {
+		Assignment(v, e): assignmentSemantics(Assignment(v, e));
+		Test(cond): testSemantics(cond); 
+		Sequence(ops):  sequenceSemantics(ops);
+		Selection(ops): selectionSemantics(ops);
+		Iteration(op, _): iterationSemantics(op);
+	}
+}
+
+initialObject(type: Type) {
+	switch(type) {
+		IntType(): VMInt(0);
+		ArrayType(domain, codomain): 
+			VMArray(makeTree());
+		default: VMInt(0); 
+	}
+}
+
+translateHeMo(syntax: HeMoSyntaxTree) {
+	initialState = fold(syntax.varDeclList, makeTree(), \state, variableDecl -> 
+			setTree(state, variableDecl.variable, initialObject(variableDecl.type)));
+	configuration = Configuration(initialState, 0);
+	body = extractBody(syntax.prog);
+
+	semantics = HeMoBytecode(buildSemantics(body));
+
+	Pair(configuration, semantics);
+}

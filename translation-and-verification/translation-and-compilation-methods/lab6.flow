@@ -1,0 +1,56 @@
+import sys/system;
+import ds/dlist;
+import lingo/pegcode/driver;
+
+Rpn::= Int, Mul, Add;
+    Mul();
+    Add();
+    Int( i:int );
+
+lingoGrammarOp: ref Maybe<[PegOp]> = ref None();
+rpnGrammar() {
+	onlyOnce(lingoGrammarOp, \ -> {
+		compilePegGrammar("#include exprRPN.lingo");
+	});
+}
+
+parseRPN(source: string) {
+	parsic(rpnGrammar(), source, defaultPegActions);
+}
+
+rpnToInt(expressions: [Rpn]) {
+    stack: DList<int> = makeDList();
+    res = fold(expressions, Some(stack), \maybeStack,expr-> {
+        switch(expr) {
+            Int(i): {
+                maybeDNode = maybeMap(maybeStack, \x-> pushDList(x, i));
+                maybeBind(maybeDNode, \x->maybeStack);
+            }
+            Add():{
+                maybeAdd = maybeMap2(\x, y-> x+y);
+                maybeOp1 = maybeBind(maybeStack, popDList);
+                maybeOp2 = maybeBind(maybeStack, popDList);
+                maybeSum = maybeAdd(maybeOp1, maybeOp2);
+                maybeDNode = maybeMap2(pushDList)(maybeStack, maybeSum);
+                maybeBind(maybeDNode, \x->maybeStack);
+            }
+            Mul():{
+                maybeMul = maybeMap2(\x, y-> x*y);
+                maybeOp1 = maybeBind(maybeStack, popDList);
+                maybeOp2 = maybeBind(maybeStack, popDList);
+                maybeSum = maybeMul(maybeOp1, maybeOp2);
+                maybeDNode = maybeMap2(pushDList)(maybeStack, maybeSum);
+                maybeBind(maybeDNode, \x->maybeStack);
+            }
+        }  
+    });
+
+    maybeBind(res, \x-> if (lengthDList(x) == 1) popDList(x) else None());
+}
+
+main() {
+	readUntil("\n")
+	|> parseRPN
+    |> rpnToInt
+	|> println
+}

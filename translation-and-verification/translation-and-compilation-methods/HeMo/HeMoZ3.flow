@@ -1,0 +1,77 @@
+import string;
+import ds/tree;
+
+import HeMo/HeMov;
+
+export {
+    translateZ3Formula:(Formula) -> string;
+    translateZ3VarDeclList:([VariableDeclaration]) -> string;
+    getZ3:(HeMoSyntaxTree) -> string;
+}
+
+translateZ3Formula(f: Formula) {
+    switch(f) {
+        ForAll(v, condition): concatStrings(["( forall", "(", translateZ3Term(v), ")", translateZ3Formula(condition), ")"]);
+		Exists(v, condition): concatStrings(["( exists", "(", translateZ3Term(v), ")", translateZ3Formula(condition), ")"]);
+
+		PNeg(formula): concatStrings(["( not ", translateZ3Formula(formula),")"]);
+        LNeg(formula): concatStrings(["( not ", translateZ3Formula(formula),")"]);
+
+		PAnd(l, r):         concatStrings(["( and ", translateZ3Formula(l), " ", translateZ3Formula(r),  ")"]);
+        And(l, r):          concatStrings(["( and ", translateZ3Formula(l), " ", translateZ3Formula(r),  ")"]);
+		POr(l, r):          concatStrings(["( or ", translateZ3Formula(l), " ", translateZ3Formula(r),  ")"]);
+		Or(l, r):           concatStrings(["( or ", translateZ3Formula(l), " ", translateZ3Formula(r),  ")"]);
+		Conditional(l, r):  concatStrings(["( => ", translateZ3Formula(l), " ", translateZ3Formula(r),  ")"]);
+
+		Eq(e1, e2): concatStrings(["( = ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]); 
+		Neq(e1, e2):concatStrings(["( not = ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]);
+		Ge(e1, e2): concatStrings(["( >= ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]); 
+		G(e1, e2):  concatStrings(["( > ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]);  
+		Le(e1, e2): concatStrings(["( <= ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]); 
+		L(e1, e2):  concatStrings(["( < ", translateZ3Term(e1), " ", translateZ3Term(e2),  ")"]); 
+        True():     "true";
+        False():    "false";
+    }
+}
+
+translateZ3Type(t: Type) {
+    switch(t) {
+        IntType(): "Int";
+        ArrayType(d, c): strGlue( ["(Array", translateZ3Type(d), translateZ3Type(c), ")"], " " );
+        UndefinedType(): "";
+    }
+}
+
+translateZ3VarDeclList(vars: [VariableDeclaration]) {
+    typeMap = getTypeMap(vars);
+    strGlue(typeMap |> tree2pairs |> \ps-> map(ps, \p-> concatStrings(["(declare-const ", p.first, " ", translateZ3Type(p.second), ")" ])), "\n");
+}
+
+
+
+translateZ3Term(t: HeMoTerm) {
+    switch(t) {
+        Sub(e1, e2): concatStrings(["( - ", translateZ3Term(e1), " ", translateZ3Term(e2), ")"]);
+		Div(e1, e2): concatStrings(["( / ", translateZ3Term(e1), " ", translateZ3Term(e2), ")"]);
+		Add(e1, e2): concatStrings(["( + ", translateZ3Term(e1), " ", translateZ3Term(e2), ")"]);
+		Mul(e1, e2): concatStrings(["( * ", translateZ3Term(e1), " ", translateZ3Term(e2), ")"]);
+		Neg(e1): concatStrings(["(- ", translateZ3Term(e1), ")"]);
+
+    	Int(e1): i2s(e1);
+
+        ArrayAccess(name, at): concatStrings(["(select ", translateZ3Term(name), " ", translateZ3Term(at), ")"]);
+		ArrayUpdate(name, at, to): concatStrings(["(store ", translateZ3Term(name), " ", translateZ3Term(at), " ", translateZ3Term(to), ")"]);
+
+        Var(e1): e1;
+    }
+}
+
+getZ3(syntax) {
+    vars = translateZ3VarDeclList(syntax.varDeclList);
+
+    condsForm = LNeg(correctnessConditionsHeMo(syntax));
+
+    conds = concatStrings(["(assert ", translateZ3Formula(condsForm), ")"]);
+
+    strGlue([vars, conds, "(check-sat)"], "\n\n");
+}

@@ -1,0 +1,20 @@
+exp = ws sum;
+
+sum =   prod:e1 ws '+' ws sum:e2 { Add(:e1, :e2) } 
+      | prod:e1 ws '-' ws sum:e2 { Sub(:e1, :e2) } 
+      | prod;
+prod =  pow:e1 ws '*' ws prod:e2 { Mul(:e1, :e2) } 
+      | pow:e1 ws '/' ws prod:e2 { Div(:e1, :e2) }
+      | pow;
+pow =   atom:a1 ws '^' ws pow:e2 { Pow(:a1, :e2) }
+      | atom;
+atom ='(' ws exp:e ws ')' { :e } 
+      | '-' ws exp:e { Neg(:e) }
+      | number
+      | variable;
+
+ws = s*;
+s = ' ' | '\t' | '\n';
+
+number = ('0'-'9')+$d { Int(s2i($d)) };
+variable = ('a'-'z')+$v { Var($v)};

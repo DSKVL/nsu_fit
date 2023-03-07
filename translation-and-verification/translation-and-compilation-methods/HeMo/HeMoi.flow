@@ -1,0 +1,195 @@
+import ds/tree;
+import ds/set;
+import HeMo/HeMoc;
+
+export {
+    executeHeMo:(Configuration, HeMoBytecode, Set<ExecutionResult>, int) -> Set<ExecutionResult>;
+
+	ExecutionResult::= Configuration, ExecutionError;
+	ExecutionError(why: string);
+
+	EvaluationResult::= Bool, HeMoObject, ExecutionError;
+	Bool(b:bool);
+}
+
+bind(f : (?) -> Maybe<??>)-> (m : Maybe<?>) -> Maybe<??> {
+    \m1-> maybeBind(m1, f);
+}
+
+
+NoSuchElement = \obj-> ExecutionError(concatStrings(["No elements assosiated with ", ppHeMoObject(obj)]));
+NoVariableValue = ExecutionError("No assosiated elements with the variable");
+TypeMismatch = ExecutionError("Type mismatch");
+
+evaluateArithmeticExpr(state: Tree<Var, HeMoObject>, expr: ArithmeticExpr) -> EvaluationResult {
+	valueOf = \e->evaluateArithmeticExpr(state, e);
+	evaluateIntBind = \f:((int) -> int) -> \ier: EvaluationResult -> 
+		switch (ier) {
+			VMInt(i): VMInt(f(i));
+			default: ier;
+		};
+	evaluateIntBind2 = \f:((int, int) -> int) -> \ier1:EvaluationResult, ier2:EvaluationResult ->
+		switch(ier1) {
+		VMInt(x): switch(ier2) {
+			VMInt(y): VMInt(f(x,y));
+			default: ier2;
+		};
+		default: ier1;
+	};
+
+    switch(expr) {
+        Int(i): VMInt(i);
+		ArrayAccess(n, t): arrayAccessEval(state, n, t); 
+		Neg(e): 	evaluateIntBind	(\x->-x)	(valueOf(e));
+		Mul(l, r): 	evaluateIntBind2(\x, y->x*y)(valueOf(l), valueOf(r));
+		Div(l, r): 	evaluateIntBind2(\x, y->x/y)(valueOf(l), valueOf(r));
+		Add(l, r): 	evaluateIntBind2(\x, y->x+y)(valueOf(l), valueOf(r));
+		Sub(l, r): 	evaluateIntBind2(\x, y->x-y)(valueOf(l), valueOf(r));
+		Var(v): eitherMap(lookupTree(state, Var(v)), \obj: HeMoObject -> switch (obj) {
+            VMInt(i): VMInt(i);
+            default: TypeMismatch;
+        }, NoVariableValue);
+    }
+}
+
+
+evaluateArray(state: Tree<Var, HeMoObject>, arr: Array) -> EvaluationResult {
+	erlift:((obj: HeMoObject) -> EvaluationResult) = \obj -> obj;
+
+	switch (arr) {
+		ArrayAccess(a, w): arrayAccessEval(state, a, w);
+		ArrayUpdate(a, w, t): arrayUpdateEval(state, a, w, t);
+		Var(_):eitherFn(lookupTree(state, arr), erlift, \->NoVariableValue);
+	}
+}
+
+arrayUpdateEval(state: Tree<Var, HeMoObject>, n: Array, a:HeMoTerm, t: HeMoTerm) {
+	oldArr = evaluateArray(state, n);
+	at = evaluateHeMoTerm(state, a);
+    to = evaluateHeMoTerm(state, t);
+
+	switch (oldArr) { 
+		VMArray(elements): switch (at) { 
+			HeMoObject(): switch (to) { 
+				HeMoObject(): VMArray(setTree(elements, at, to))
+				default: to;
+			} default: at;
+		} default: oldArr;
+	} 
+}
+
+arrayAccessEval(state: Tree<Var, HeMoObject>, n: Array, at:HeMoTerm) -> EvaluationResult {
+	aEvaled = evaluateHeMoTerm(state, at);
+	arr = evaluateArray(state, n);
+	erlift:((obj: HeMoObject) -> EvaluationResult) = \obj -> obj;
+
+	switch (arr) { 
+		VMArray(elements): switch (aEvaled) { 
+			HeMoObject(): eitherFn(lookupTree(elements, aEvaled), erlift, \->NoSuchElement(aEvaled));
+			default: aEvaled;
+		} default: arr;
+	}
+}
+
+evaluateHeMoTerm(state: Tree<Var, HeMoObject>, expr: HeMoTerm) -> EvaluationResult {
+	switch(expr) {
+		ArrayUpdate(_, __, ___): evaluateArray(state, expr);
+        ArithmeticExpr(): evaluateArithmeticExpr(state, expr);
+	}
+}
+
+evaluatePredicate(state: Tree<Var, HeMoObject>, p: Predicate) -> EvaluationResult {
+	valueOf = \e->evaluateArithmeticExpr(state, e);
+	intBoolBind = \f:((int, int) -> bool)->\ier1:EvaluationResult, ier2:EvaluationResult -> 
+		switch(ier1) { VMInt(xdef): switch(ier2) {
+
+			VMInt(ydef): Bool(f(xdef, ydef));
+
+		default: ier2; } default: ier1; };
+
+	switch(p) {
+		Eq(l,r): intBoolBind(\x,y-> x==y)(valueOf(l),valueOf(r)); 
+		Neq(l,r): intBoolBind(\x,y-> x!=y)(valueOf(l),valueOf(r));
+		Ge(l,r): intBoolBind(\x,y-> x>=y)(valueOf(l),valueOf(r)); 
+		G(l,r): intBoolBind(\x,y-> x>y)(valueOf(l),valueOf(r));  
+		Le(l,r): intBoolBind(\x,y-> x<=y)(valueOf(l),valueOf(r)); 
+		L(l,r): intBoolBind(\x,y-> x<y)(valueOf(l),valueOf(r)); 
+		True(): Bool(true);
+		False(): Bool(false);
+	}
+}
+
+evauatePredicateBind(f:(bool) -> bool) -> (EvaluationResult) -> EvaluationResult {
+	\per -> switch (per) {
+		Bool(b): Bool(f(b));
+		default: per;
+	}
+}
+
+evauatePredicateBind2(f:(bool, bool) -> bool) -> (EvaluationResult, EvaluationResult) -> EvaluationResult {
+	\per, per2 -> switch (per) { Bool(b): switch (per2) {
+		Bool(b2): Bool(f(b, b2));
+	default: per2;} default: per;}
+}
+
+evaluateFormula(state: Tree<Var, HeMoObject>, formula: PropositionalFormula) -> EvaluationResult {
+	switch(formula) {
+		PNeg(f): evauatePredicateBind(\b->!b)(evaluateFormula(state, f));
+		PAnd(l, r): evauatePredicateBind2(\x,y->x&&y)(evaluateFormula(state, l), evaluateFormula(state, r));
+		POr(l, r): evauatePredicateBind2(\x,y->x||y)(evaluateFormula(state, l), evaluateFormula(state, r));
+		Predicate(): evaluatePredicate(state, formula);
+	}
+}
+
+execMarkedAssignment(state: Tree<Var, HeMoObject>, assignment: Assignment, nextLabels: Set<int>) -> Set<ExecutionResult> {
+	termValue = evaluateHeMoTerm(state, assignment.expr);
+	switch (termValue) {
+		HeMoObject(): {
+			newState = setTree(state, assignment.variable, termValue);
+			mapSet(nextLabels, \l-> Configuration(newState, l));
+		}
+		ExecutionError(a): makeSet1(termValue);
+		default: makeSet1(ExecutionError("Type missmatch"));
+	}
+}
+
+execOp(configuration: Configuration, op: Operator) -> Set<ExecutionResult> {
+	state = configuration.state;
+	
+	switch(op) {
+		MarkedAssignment(assignment, nextLabels):
+			execMarkedAssignment(state, assignment, nextLabels)
+
+		MarkedJump(cond, LabelsT, LabelsF): {
+			updateLabel = \l-> Configuration(state, l);
+			updateLabelSet = \ls-> mapSet(ls, updateLabel);
+			per = evaluateFormula(state, cond);
+
+			switch (per) {
+				Bool(b): updateLabelSet(if (b) LabelsT else LabelsF);
+				ExecutionError(mes): makeSet1(per);
+				default: makeSet1(ExecutionError("Type missmatch"));
+			};
+		}
+	}
+}
+
+executeHeMo(configuration, bytecode, evaluatedConfigurations: Set<ExecutionResult>, depth:int) -> Set<ExecutionResult> {
+	if (depth < 0) makeSet() else {
+		ops = bytecode.ops;
+		currentOperations = getTreeArrayValue(ops, configuration.label);
+		
+		if (currentOperations == []) 
+			buildSet([configuration])
+		else {
+			executed = mergeSetsA(map(currentOperations, \op-> execOp(configuration, op)));
+			dif = differenceSets(executed, evaluatedConfigurations);
+			sum = mergeSets(executed, evaluatedConfigurations);
+
+			foldSet(dif, makeSet(), \resSet, execResult-> switch (execResult){
+				Configuration(_, __): mergeSets(resSet, executeHeMo(execResult, bytecode, sum, depth-1));
+				ExecutionError(_): resSet;
+			})
+		}
+	}
+}

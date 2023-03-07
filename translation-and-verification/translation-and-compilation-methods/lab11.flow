@@ -1,0 +1,30 @@
+import HeMo/HeMo;
+
+main() {
+ 	testData = [
+"VAR n: INT; VAR x: INT; VAR y: INT; { 
+		n := 12; x := 0; y := 0;
+		{
+			{
+				(y <= n)?;
+				y := (y + (x + (x + 1)));
+				x := (x + 1);
+			}*;
+			(NOT (y <= n))?;
+		};
+		x := (x - 1);
+	}",
+"VAR x: INT; VAR y: INT; VAR n: INT; {
+ 	x := 0; y := 0;
+ 	{
+ 		(y <= n)?;
+ 		y := y + x + x + 1; 
+ 		x := x + 1;
+ 	}*;
+ 	x := x - 1;
+}"];
+
+	test = \programString -> println(parseHeMo(programString).prog);
+
+	iter(testData, test);
+}

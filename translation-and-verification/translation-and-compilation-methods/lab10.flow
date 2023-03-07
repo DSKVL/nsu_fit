@@ -1,0 +1,233 @@
+import string;
+import lingo/pegcode/driver;
+import sys/system;
+import ds/tree;
+import lab8;
+
+Identity: (what: ArithmeticExpr, to:ArithmeticExpr);
+mapPattern(identity: Identity) -> (ArithmeticExpr) -> ArithmeticExpr {
+    \ex-> {
+        varsMap = nodeMatches(ex, identity.what) |> bind(
+            \x-> fold(x, Some(makeTree()), 
+                \maybeTree, pair-> maybeBind(maybeTree, 
+                    \tree -> eitherFn(lookupTree(tree, pair.first), 
+                        \val-> if (val == pair.second) Some(tree) else None(),
+                        \-> Some(setTree(tree, pair.first, pair.second))))));
+
+        eitherFn(varsMap, \vmap-> replaceVars(identity.to, vmap), \->ex);
+    }
+}
+
+replaceVars(pattern: ArithmeticExpr, map: Tree<string, ArithmeticExpr>) {
+    switch (pattern) {
+        Mul(l, r): Mul(replaceVars(l, map), replaceVars(r, map));
+        Div(l, r): Div(replaceVars(l, map), replaceVars(r, map));
+        Add(l, r): Add(replaceVars(l, map), replaceVars(r, map));
+        Sub(l, r): Sub(replaceVars(l, map), replaceVars(r, map));
+        Neg(e): Neg(replaceVars(e, map));
+        Int(i): Int(i);
+        Var(v): either(lookupTree(map, v), Var(v));
+    }
+}
+
+getNodeType(ex: ArithmeticExpr) {
+    switch (ex) {
+        Mul(l, r): "Mul";
+        Div(l, r): "Div";
+        Add(l, r): "Add";
+        Sub(l, r): "Sub";
+        Neg(e): "Neg";
+        Int(i): "Int";
+        Var(v): "Var";
+    }
+}
+
+nodeMatches: (ArithmeticExpr, ArithmeticExpr) -> Maybe<[Pair<string, ArithmeticExpr>]>;
+nodeMatches(node: ArithmeticExpr, matchNode: ArithmeticExpr) {
+    switch (matchNode) {
+        Var(v): Some([Pair(v, node)]);
+        Int(i): if (matchNode == node)  Some([]) else None();
+        Mul(l, r): if (getNodeType(node) == getNodeType(matchNode)) matchHelper(l, r, node) else None();
+        Div(l, r): if (getNodeType(node) == getNodeType(matchNode)) matchHelper(l, r, node) else None();
+        Add(l, r): if (getNodeType(node) == getNodeType(matchNode)) matchHelper(l, r, node) else None();
+        Sub(l, r): if (getNodeType(node) == getNodeType(matchNode)) matchHelper(l, r, node) else None();
+        Neg(e): if (getNodeType(node) == getNodeType(matchNode)) nodeMatches(node, e) else None();
+    }
+}
+
+matchHelper(me1, me2, node) {
+    switch (node) {
+        Mul(l, r): maybeMap2(concat)(nodeMatches(l, me1), nodeMatches(r, me2));
+        Div(l, r): maybeMap2(concat)(nodeMatches(l, me1), nodeMatches(r, me2));
+        Add(l, r): maybeMap2(concat)(nodeMatches(l, me1), nodeMatches(r, me2));
+        Sub(l, r): maybeMap2(concat)(nodeMatches(l, me1), nodeMatches(r, me2));
+        Neg(e): nodeMatches(e, me1);
+        default: None();
+    }
+}
+
+flatMapSet(f:(?)->Set<??>)->(Set<?>)->Set<??> {
+    \set-> foldSet(set, makeSet(), 
+        \res, elem -> mergeSets(res, f(elem)));
+}
+
+size(ex: ArithmeticExpr) {
+    switch (ex) {
+        Mul(l, r): 1 + size(l) + size(r);
+        Div(l, r): 1 + size(l) + size(r);
+        Add(l, r): 1 + size(l) + size(r);
+        Sub(l, r): 1 + size(l) + size(r);
+        Neg(e): 1 + size(e);
+        Int(i): 0;
+        Var(v): 0;
+    }
+}
+
+larg(ex: ArithmeticExpr) {
+    switch (ex) {
+        Mul(l, r): Some(l);
+        Div(l, r): Some(l);
+        Add(l, r): Some(l);
+        Sub(l, r): Some(l);
+        Neg(e): Some(e);
+        Int(i): None();
+        Var(v): None();
+    }
+}
+rarg(ex: ArithmeticExpr) {
+    switch (ex) {
+        Mul(l, r): Some(r);
+        Div(l, r): Some(r);
+        Add(l, r): Some(r);
+        Sub(l, r): Some(r);
+        Neg(e): None();
+        Int(i): None();
+        Var(v): None();
+    }
+}
+
+substituteArguments(ex: ArithmeticExpr) -> (ArithmeticExpr, ArithmeticExpr) -> (ArithmeticExpr) {
+    \l,r -> {
+        switch (ex) {
+            Mul(_, __): Mul(l, r);
+            Div(_, __): Div(l, r);
+            Add(_, __): Add(l, r);
+            Sub(_, __): Sub(l, r);
+            Neg(_): Neg(l);
+            default: ex;
+        }
+    };
+}
+
+foldCartesian(a: Set<?>, b: Set<??>, acc: ???,  f: (?, ??, ???) -> ???) {
+    foldSet(a, acc, \innerAcc, left->
+        foldSet(b, innerAcc, \inner2Acc, right -> f(left, right, inner2Acc)));
+}
+
+simplifyGeneral(identities: Set<Identity>, ex: ArithmeticExpr, calculated: Set<ArithmeticExpr>) -> (Set<ArithmeticExpr>) {
+    largMaybe = larg(ex);
+    rargMaybe = rarg(ex);
+    newEx = substituteArguments(ex);
+
+    largSimplifiedSet = eitherFn(largMaybe, \l-> mergeSets(makeSet1(l), simplifyGeneral(identities, l, makeSet1(l))), 
+                                            \->makeSet1(Int(0)));
+    rargSimplifiedSet = eitherFn(rargMaybe, \r-> mergeSets(makeSet1(r), simplifyGeneral(identities, r, makeSet1(r))), 
+                                            \->makeSet1(Int(0)));
+
+    //exSize = size(ex);
+    simplifiedVariantsSet = foldCartesian(largSimplifiedSet, rargSimplifiedSet, makeSet1(ex), \l, r, res -> {
+        exMapped = mapSet(identities, \identity->mapPattern(identity)(newEx(l, r)));
+        //filtered = filterSet(exMapped, \x-> size(x) <= exSize);
+        mergeSets(res, exMapped) //merged with filtered before
+    });
+
+    difference = differenceSets(simplifiedVariantsSet, calculated);
+    merge = mergeSets(simplifiedVariantsSet, calculated);
+    foldSet(difference, merge, \resInner, e -> 
+            mergeSets(resInner, simplifyGeneral(identities, e, resInner)));
+}
+
+simplifyIds(ids: Set<Identity>, ex: ArithmeticExpr) -> ArithmeticExpr {
+    simplifiedSet = simplifyGeneral(ids, ex,  makeSet1(ex));
+    exSize = size(ex);
+    minSize = foldSet(simplifiedSet, exSize, \res, simpled-> if (size(simpled) < res) size(simpled) else res);
+    foldSet(simplifiedSet, ex, \res, simpled-> if (size(simpled) == minSize) simpled else res);
+}
+
+main() {
+
+    rules1 = buildSet([ 
+        Identity(parse("((x - z) + (y + z))"), parse("(x + y)")),
+        Identity(parse("((x + z) + (y - z))"), parse("(x + y)")),
+        Identity(parse("(x + x)"), parse("(2 * x)")),
+        Identity(parse("--x"), parse("x")),
+        Identity(parse("(x + y)"), parse("(y + x)")),
+        Identity(parse("(x * y)"), parse("(y * x)")),
+        Identity(parse("(x + 0)"), parse("x")),
+        Identity(parse("(x - 0)"), parse("x")),
+        Identity(parse("(x - x)"), parse("0")),
+        Identity(parse("(x + -x)"), parse("0")),
+        Identity(parse("(-x + x)"), parse("0")),
+        Identity(parse("(x * 0)"), parse("0")),
+        Identity(parse("(x * 1)"), parse("x")),
+        Identity(parse("(0 + x)"), parse("x")),
+        Identity(parse("(0 * x)"), parse("0")),
+        Identity(parse("(1 * x)"), parse("x")),
+        Identity(parse("(x * -1)"), parse("-x")),
+        Identity(parse("(-1 * x)"), parse("-x")),
+        Identity(parse("(x / x)"), parse("1")),
+        Identity(parse("(0 / x)"), parse("0")),
+        Identity(parse("((x * z) + (y * z))"), parse("((x + y) * z)")),
+        Identity(parse("((x + y) * z)"), parse("((x * z) + (y * z))")),
+        Identity(parse("((x + y) + z)"), parse("(x + (y + z))")),
+        Identity(parse("((x * y) * z)"), parse("(x * (y * z))")),
+        Identity(parse("((x * x) - (y * y))"), parse("((x - y) * (x + y))")),
+        Identity(parse("((x - y) * (x + y))"), parse("((x * x) - (y * y))")),
+        Identity(parse("((x - y) * (x - y))"), parse("(((x * x) + (y * y)) - (2 * (x * y)))")),
+        Identity(parse("(((x * x) + (y * y)) - (2 * (x * y)))"), parse("((x - y) * (x - y))")),
+        Identity(parse("((x + y) * (x + y))"), parse("(((x * x) + (y * y)) + (2 * (x * y)))")),
+        Identity(parse("(((x * x) + (y * y)) + (2 * (x * y)))"), parse("((x + y) * (x + y))"))
+    ]);
+
+    rules2 = buildSet([
+        Identity(parse("((x - z) + (y + z))"),parse("(x + y)")),
+        Identity(parse("((x + z) + (y - z))"),parse("(x + y)")),
+        Identity(parse("(x + x)"),parse("(2 * x)")),
+        Identity(parse("- - x"),parse("x")),
+        Identity(parse("(x + y)"),parse("(y + x)")),
+        Identity(parse("(x * y)"),parse("(y * x)")),
+        Identity(parse("(x + 0)"),parse("x")),
+        Identity(parse("(x - 0)"),parse("x")),
+        Identity(parse("(x - x)"),parse("0")),
+        Identity(parse("(x + -x)"),parse("0")),
+        Identity(parse("(x * 0)"),parse("0")),
+        Identity(parse("(x * 1)"),parse("x")),
+        Identity(parse("(0 + x)"),parse("x")),
+        Identity(parse("(x * -1)"),parse("-x")),
+        Identity(parse("(x / x)"),parse("1")),
+        Identity(parse("((x * z) + (y * z))"),parse("((x + y) * z)")),
+        Identity(parse("((x + y) * z)"),parse("((x * z) + (y * z))")),
+        Identity(parse("((x + y) + z)"),parse("(x + (y + z))")),
+        Identity(parse("((x * y) * z)"),parse("(x * (y * z))")),
+        Identity(parse("((x * x) - (y * y))"),parse("((x - y) * (x + y))")),
+        Identity(parse("((x - y) * (x + y))"),parse("((x * x) - (y * y))")),
+        Identity(parse("((x - y) * (x - y))"),parse("(((x * x) + (y * y)) - (2 * (x * y)))")),
+        Identity(parse("(((x * x) + (y * y)) - (2 * (x * y)))"),parse("((x - y) * (x - y))")),
+        Identity(parse("((x + y) * (x + y))"),parse("(((x * x) + (y * y)) + (2 * (x * y)))")),
+        Identity(parse("(((x * x) + (y * y)) + (2 * (x * y)))"),parse("((x + y) * (x + y))"))
+    ]);
+
+    simplify = \rules-> \tree->simplifyIds(rules, tree);
+    doTest1 = \str -> str|> parse |> simplify(rules1) |> expToString |> println;
+    doTest2 = \str -> str|> parse |> simplify(rules2) |> expToString |> println;
+
+    test = ["(a + b) * b",
+            "(x + 1) * (x - 1)",
+            "x + (y - y)",
+            "x*x*x+(x*x)*y"];
+
+    iter(test, doTest1);
+    iter(test, doTest2);
+    // "(y * y - 2 * 2) / (y * y - 2 * 2 * y + 2 * 2) * (y - 2)" |> parse |> simplify(rules1) |> expToString |> println;
+    // "(y * y - 2 * 2) / (y * y - 2 * 2 * y + 2 * 2) * (y - 2)" |> parse |> simplify(rules2) |> expToString |> println;
+}

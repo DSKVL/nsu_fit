@@ -1,0 +1,27 @@
+import HeMo/HeMo;
+
+main() {
+    test = \programString -> switch(parseHeMo(programString)) {
+        ParseError(m): m;
+        default: "gut";
+    } |> println;
+    testData = [
+    "VAR n: INT; VAR a: INT ARRAY OF INT; { n := a; }",
+    "VAR n: INT; { a:= n; }",
+    "VAR n: INT; { n:= a; }",
+    "VAR n: INT; VAR n: INT; { }",
+    "VAR n: INT; VAR a: INT ARRAY OF INT; VAR aa: INT ARRAY OF INT ARRAY OF INT; { aa := UPD(aa, n, a); }",
+    "VAR n: INT; VAR a: INT ARRAY OF INT; VAR aa: INT ARRAY OF INT ARRAY OF INT; { aa := UPD(aa, a, n); }",
+    "VAR n: INT; VAR a: INT ARRAY OF INT; VAR aa: (INT ARRAY OF INT) ARRAY OF INT; { aa := UPD(aa, a, n); }",
+    "VAR n: INT; VAR a: INT ARRAY OF INT; VAR aa: (INT ARRAY OF INT) ARRAY OF INT; { n := APP(aa, a); }",
+    "VAR n: INT; { @(1 = 1) { (n <= 6)?; }*; }",
+    "VAR n: INT; { @(n < 6) { (n <= 6)?; }*; }",
+    "VAR n: INT; VAR x: INT; { @( n=x ) { (n <= 6)?; }*; }",
+    "VAR n: INT; VAR x: INT; { @( n=x*x ) { (n <= 6)?; }*; }",
+    "VAR n: INT; VAR x: INT; { @( n=x*x ) { (n <= 6)?; }*; }",
+    "VAR x: INT; VAR y: INT; VAR z: INT; { @( y=x*x ){ (n <= 6)?; }*; }",
+    "VAR x: INT; VAR y: INT; VAR z: INT; { @( y=x*x AND (x-1)<x ) { (n <= 6)?; }*; }",
+    "VAR x: INT; VAR y: INT; VAR z: INT; { @( y=x*x AND (x-1)*(x-1) <= z ) { (n <= 6)?; }*; }"];
+    
+    iter(testData, test);
+}

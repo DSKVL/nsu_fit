@@ -1,0 +1,246 @@
+import lingo/pegcode/driver;
+import sys/system;
+import ds/tree;
+import ds/tuples;
+import math/math;
+import string;
+
+export {
+	parseHeMo: (string) -> flow;
+	extractBody(Program) -> Body;
+	getTypeMap:([VariableDeclaration])-> Tree<string, Type>;
+	HeMoParseResult::= HeMoSyntaxTree, ParseError;
+
+	ParseError(mes: string);
+	HeMoSyntaxTree(varDeclList: [VariableDeclaration], prog: Program);
+	VariableDeclaration: (variable: Var, type: Type);
+
+	Program::= AnnotatedProgram, Body;
+	AnnotatedProgram(precondition: Formula, postcondition: Formula, body: Sequence);
+
+	Type ::= IntType, ArrayType, UndefinedType;
+		IntType();
+		ArrayType: (domain: Type, codomain: Type);
+		UndefinedType();
+
+	Body ::= Assignment, Sequence, Test, Selection, Iteration;
+	Assignment: (variable: Var, expr: HeMoTerm);
+	Sequence: (bodys: [Body]);
+	Test( form: PropositionalFormula );
+	Selection( bodys: [Body]);
+	Iteration( body: Body, invariant: Maybe<Formula>);
+
+	HeMoTerm ::= Array, ArithmeticExpr;
+	ArithmeticExpr ::= Add, Mul, Sub, Div, Var, Int, Neg, ArrayAccess;
+		Sub : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+		Div : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+		Add : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+		Mul : (e1: ArithmeticExpr, e2: ArithmeticExpr);
+
+		Neg : (e1: ArithmeticExpr);
+		Int : (e1: int);
+		Var : (e1: string);
+		ArrayAccess(name: Array, at:HeMoTerm);
+
+	Array::= ArrayUpdate, ArrayAccess, Var;
+		ArrayUpdate(name: Array, at:HeMoTerm, to: HeMoTerm);
+
+	PropositionalFormula ::= PNeg, PAnd, POr, Predicate;
+		PNeg : (formula: PropositionalFormula);
+		PAnd : (l: PropositionalFormula, r: PropositionalFormula);
+		POr : (l: PropositionalFormula, r: PropositionalFormula);
+
+	Formula ::= PropositionalFormula, ForAll, Exists, Conditional, LNeg, And, Or;
+		ForAll : (v:Var, condition: Formula);
+		Exists : (v:Var, condition: Formula);
+		Conditional: (antecedent: Formula, consequent: Formula);
+		LNeg : (formula: Formula);
+		And : (l: Formula, r: Formula);
+		Or : (l: Formula, r: Formula);
+
+	Predicate::= Eq, Neq, Ge, G, Le, L, False, True;  
+		Eq:(e1: ArithmeticExpr, e2: ArithmeticExpr); 
+		Neq:(e1: ArithmeticExpr, e2: ArithmeticExpr);
+		Ge:(e1: ArithmeticExpr, e2: ArithmeticExpr); 
+		G:(e1: ArithmeticExpr, e2: ArithmeticExpr);  
+		Le:(e1: ArithmeticExpr, e2: ArithmeticExpr); 
+		L:(e1: ArithmeticExpr, e2: ArithmeticExpr); 
+		False();
+		True();
+}
+ 
+extractAssignments(body: Body) {
+	switch (body) {
+		Assignment(v, t): [Assignment(v, t)]; 
+		Sequence(bs): fold(bs, [], \assignments, b-> concat(assignments, extractAssignments(b)));
+		Test(cond): [];
+		Selection(bs): fold(bs, [], \assignments, b-> concat(assignments, extractAssignments(b)));
+		Iteration(b, _): extractAssignments(b);
+	}
+}
+
+//double declartion, arithmetic with arrays, array types on ops
+getTermType(typeMap: Tree<string, Type>, term: HeMoTerm) -> Type {
+	binaryOperationType = \e1, e2-> {
+		e1Type = getTermType(typeMap, e1);
+		e2Type = getTermType(typeMap, e2);
+		if (e1Type == e2Type) 
+			e1Type
+		else
+			UndefinedType()
+	};
+
+	getArrayType = \arr -> switch (arr) {
+		ArrayAccess(ar, a): switch(getTermType(typeMap, ar)) {
+			ArrayType(d, c): c;
+			default: UndefinedType();
+		};
+		ArrayUpdate(ar, a, t): getTermType(typeMap, ar);
+		Var(e1): either(lookupTree(typeMap, e1), UndefinedType());
+	};
+
+	switch (term) {
+		Sub(e1, e2): binaryOperationType(e1, e2);
+		Div(e1, e2): binaryOperationType(e1, e2);
+		Add(e1, e2): binaryOperationType(e1, e2);
+		Mul(e1, e2): binaryOperationType(e1, e2);
+		Neg(e1): getTermType(typeMap, e1);
+		Int(e1): IntType();
+		Var(e1): either(lookupTree(typeMap, e1), UndefinedType());
+		ArrayAccess(name, at): {
+			arrayType = getArrayType(name);
+			atType = getTermType(typeMap, at);
+			switch(arrayType) {
+				ArrayType(d, c): if (d == atType) c else UndefinedType();
+				default: UndefinedType();
+			} 
+		};
+		ArrayUpdate(name, at, to):{
+			arrayType = getArrayType(name);
+			atType = getTermType(typeMap, at);
+			toType = getTermType(typeMap, to);
+			switch(arrayType) {
+				ArrayType(d, c): if (d == atType && c == toType) arrayType else UndefinedType();
+				default: UndefinedType();
+			}
+		};
+	}
+}
+
+containsDoubleDeclarations(vds: [VariableDeclaration]) {
+	fold(vds, false, \res,vd-> res || countA(vds,\elem->elem==vd) != 1)
+}
+
+extractBody(prog: Program) -> Body {
+	switch(prog) {
+		AnnotatedProgram(a, c, b): b;
+		Body(): prog;
+	}
+}
+
+incorrectFormulasTypesFormula(typeMap:Tree<string, Type>, formula: PropositionalFormula) {
+	isIncorrect = \f->incorrectFormulasTypesFormula(typeMap, f);
+	typeOf = \ex-> getTermType(typeMap, ex);
+
+	switch (formula) {
+		PNeg(f): isIncorrect(f);
+		PAnd(l, r): isIncorrect(l) || isIncorrect(r);
+		POr(l, r): isIncorrect(l) || isIncorrect(r);
+		Eq(e1, e2): typeOf(e1) != typeOf(e2); 
+		Neq(e1, e2): typeOf(e1) != typeOf(e2);
+		Ge(e1, e2): typeOf(e1) != typeOf(e2); 
+		G(e1, e2): typeOf(e1) != typeOf(e2);  
+		Le(e1, e2): typeOf(e1) != typeOf(e2); 
+		L(e1, e2): typeOf(e1) != typeOf(e2); 
+		True(): false;
+		False(): false;
+	}
+}
+
+incorrectFormulasTypesBody(typeMap:Tree<string, Type>, body: Body) -> bool {
+	switch (body) {
+		Assignment(v, t): false; 
+		Sequence(bs): fold(bs, false, \res, b-> res || incorrectFormulasTypesBody(typeMap, b));
+		Test(cond): incorrectFormulasTypesFormula(typeMap, cond);
+		Selection(bs): fold(bs, false, \res, b-> res || incorrectFormulasTypesBody(typeMap, b));
+		Iteration(b, _): incorrectFormulasTypesBody(typeMap, b);
+	}
+}
+
+incorrectAssignmentsTypes(typeMap:Tree<string, Type>, body: Body) -> bool {
+	fold(extractAssignments(body), false, \res, as -> 
+		res || (lookupTreeDef(typeMap, as.variable.e1, UndefinedType()) != getTermType(typeMap, as.expr)))
+}
+
+getTypeMap(vars: [VariableDeclaration])-> Tree<string, Type> {
+	pairs2tree(map(vars, \vd -> Pair(vd.variable.e1, vd.type)))
+}
+
+buildProgram(varsAndProg: [flow]) {
+	vars:[VariableDeclaration] = elementAt(varsAndProg, 0, []);
+	prog:Program = elementAt(varsAndProg, 1, Sequence([]));
+	body:Body = extractBody(prog);
+	typeMap = getTypeMap(vars);
+
+	if(containsDoubleDeclarations(vars)) 
+		ParseError("Double declarations are not allowed") 
+	else if (incorrectFormulasTypesBody(typeMap, body))
+		ParseError("Type mismatch or variable was not declared")	
+	else if (incorrectAssignmentsTypes(typeMap, body)) 
+		ParseError("Type mismatch or variable was not declared") 
+	else 
+		HeMoSyntaxTree(vars, prog)
+}
+
+buildSelection(bs: [flow]) { Selection(bs) }
+buildIteration(bs: [flow]) { Iteration( Sequence(concatA(bs)), None() ) }
+// buildWhile(args: [flow]) { 
+// 	bs = switch(elementAt(args, 1, Sequence([]))) {
+// 		Sequence(b): b;
+// 		default: [];
+// 	}
+// 	condition = elementAt(args, 0, Test(False));
+
+// 	Sequence(concat([Iteration( Sequence(concat(	[Test(condition)], bs)), None())], [Test(PNeg(condition))]))
+// }
+// buildAnnotatedWhile(args: [flow]) {
+// 	inv = elementAt(args, 0, True);
+// 	while = elementAt(args, 1, Iteration(Sequence([]), None()));
+// 	whileBody = while.bodys;
+// 	iter = switch(firstElement(whileBody, Sequence([]))) {
+// 		Iteration(b, mI): Iteration(b, mI);
+// 		default: Iteration(Sequence([]), None());
+// 	};
+// 	test = lastElement(whileBody, Test(False));
+
+// 	annotatedIter = Iteration(iter.bodys, Some(inv));
+// 	Sequence([iter, test]);
+// }
+buildBiconditional(args: [flow]) {
+	f1 = elementAt(args, 0, False());
+	f2 = elementAt(args, 1, False());
+	And(Conditional(f1, f2), 
+		Conditional(f2, f1))
+}
+buildAnnotatedIteration( args: [flow] ) {
+	inv = elementAt(args, 1, True());
+	switch(elementAt(args, 0, Iteration(Sequence([]), None()))) {
+		Iteration(b, _): Iteration(b, Some(inv));
+		default: Iteration(Sequence([]), Some(True()));
+	};
+}
+HeMoPegActions = {
+	t = setTreeValues(defaultPegActions.t, [
+		Pair("buildProgram", buildProgram),
+		Pair("buildBiconditional", buildBiconditional), 
+//		Pair("buildAnnotatedWhile", buildAnnotatedWhile),
+		Pair("buildAnnotatedIteration", buildAnnotatedIteration),
+//		Pair("buildWhile", buildWhile),
+		Pair("buildIteration", buildIteration),
+		Pair("buildSelection", buildSelection)]);
+	SemanticActions(t) 
+}
+
+lingoGrammarOp: ref Maybe<[PegOp]> = ref None();
+lingoGrammar() { onlyOnce(lingoGrammarOp, \-> compilePegGrammar("#include HeMo.lingo")) }
+parseHeMo(source: string) { parsic(lingoGrammar(), source, HeMoPegActions) }

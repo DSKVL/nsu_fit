@@ -1,0 +1,30 @@
+import HeMo/HeMo;
+import HeMo/HeMoc;
+import HeMo/HeMoi;
+
+main() {
+    data = ["VAR a: INT;
+{
+{a := 2 U a:=3 };
+}"];
+
+
+    testExec = \str -> str 
+        |> parseHeMo
+        |> translateHeMo 
+		|> (\x -> executeHeMo(x.first, x.second, makeSet(), 50))
+        |> (\x -> iterSet(x, \y-> switch(y) {
+            Configuration(_,__): println(ppConfiguration(y));
+            default: println(y)
+            }));
+    
+    testCompile = \str -> str 
+        |> parseHeMo 
+        |> translateHeMo 
+        |> secondOfPair 
+        |> ppHeMoBytecode 
+        |> println;
+
+    iter(data, testCompile);
+    iter(data, testExec);
+}

@@ -1,0 +1,126 @@
+import ds/list;
+import HeMo/HeMoc;
+
+export {
+    correctnessConditionsHeMo:(HeMoSyntaxTree) -> Formula;
+    vc:(Formula, Body, Formula) -> Formula;
+}
+
+replaceTerm(e: HeMoTerm, what: Var, to:HeMoTerm) {
+    repl = \expr->replaceTerm(expr, what, to);
+    
+    switch (e) {
+        ArrayUpdate(n, w, t):  {
+            r = repl(n);
+            arr = switch(r) {
+                Array(): r;
+                default: Var("err");
+            };
+            ArrayUpdate(arr, repl(w), repl(t))
+        };
+        ArithmeticExpr(): replaceExpr(e, what, to);
+    }
+}
+replaceExpr(e: ArithmeticExpr, what: Var, to:HeMoTerm) -> ArithmeticExpr {
+    repl = \expr: HeMoTerm -> replaceTerm(expr, what, to);
+    replAE:((ArithmeticExpr)->ArithmeticExpr) = \expr:ArithmeticExpr-> {
+        r = repl(expr);
+        switch(r) {
+        ArithmeticExpr(): r;
+        default:Int(0);
+    }};
+    
+    switch(e) {
+        Sub(e1, e2): Sub(replAE(e1), replAE(e2));
+		Div(e1, e2): Div(replAE(e1), replAE(e2));
+		Add(e1, e2): Add(replAE(e1), replAE(e2));
+		Mul(e1, e2): Mul(replAE(e1), replAE(e2));
+		Neg(e1): Neg(replAE(e1));
+		Int(e1): e;
+		Var(e1): if (e == what) 
+            switch(to) {
+                ArithmeticExpr(): to;
+                default:Int(0);
+            } else e;
+		ArrayAccess(name, at):  {
+            r = repl(name);
+            arr:Array = switch (r) {
+                Array(): r;
+                default(): Var("err");
+            }
+            ArrayAccess(arr, replaceTerm(at, what, to));
+        };
+	};
+}
+
+replaceVariable(f: Formula, what: Var, to:HeMoTerm) {
+    repl = \formula->replaceVariable(formula, what, to);
+    replAE = \expr:ArithmeticExpr-> replaceExpr(expr, what, to);
+
+    switch(f) {
+        //Should add case where variable sets intersect
+        ForAll(v, condition): ForAll(v, repl(condition));
+		Exists(v, condition): Exists(v, repl(condition));
+		Conditional(a, c): Conditional(repl(a), repl(c));
+		LNeg (form): LNeg(repl(form));
+        PNeg (form): LNeg(repl(form));
+		And(l, r): And(repl(l), repl(r));
+        PAnd(l, r): And(repl(l), repl(r));
+		Or(l, r): Or(repl(l), repl(r));
+        POr(l, r): Or(repl(l), repl(r));
+        Eq(e1, e2): Eq(replAE(e1), replAE(e2)); 
+		Neq(e1, e2): Neq(replAE(e1), replAE(e2));
+		Ge(e1, e2): Ge(replAE(e1), replAE(e2));
+		G(e1, e2): G(replAE(e1), replAE(e2));
+		Le(e1, e2): Le(replAE(e1), replAE(e2));
+		L(e1, e2): L(replAE(e1), replAE(e2));
+        default:f 
+    }
+}
+
+simplify(f: Formula) -> Formula {
+    switch(f) {
+		Conditional(a, c): 
+            if (a == True()) c
+            else if (a == False()) True()
+            else f;
+		And(l, r): 
+            if (l==True()) r
+            else if (r == True()) l
+            else if (l == False() || r == False()) False()
+            else f;
+        PAnd(l, r): 
+            if (l==True()) r
+            else if (r == True()) l
+            else if (l == False() || r == False()) False()
+            else f;
+		Or(l, r): 
+            if (l==False()) r
+            else if (r == False()) l
+            else if (l == True() || r == True()) True()
+            else f;
+        POr(l, r): 
+            if (l==False()) r
+            else if (r == False()) l
+            else if (l == True() || r == True()) True()
+            else f;
+        default:f 
+    }
+}
+
+vc(pre: Formula, body: Body, post: Formula) -> Formula {
+    switch(body) {
+        Assignment(var, expr): Conditional(pre, replaceVariable(post, var, expr));
+        Test(f): Conditional(pre, Conditional(f, post));
+	    Sequence(bs): vc(pre, firstElement(bs, Test(True())), foldr(tail(bs), post, \f, b-> simplify(vc(True(), b, f))));
+	    Selection(bs): fold(bs, False(), \f, b->simplify(And(vc(pre, b, post), f)));
+	    Iteration(b, inv): inv ?? And(simplify(Conditional(pre, inv)), simplify(vc(inv, b, inv))) : False();
+    } |> simplify
+}
+
+correctnessConditionsHeMo(syntaxTree){
+    switch(syntaxTree.prog) {
+        AnnotatedProgram(pre, post, body): vc(pre, body, post);
+        default: False();
+    }
+}

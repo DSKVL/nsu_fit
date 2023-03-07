@@ -1,0 +1,96 @@
+import string;
+import lingo/pegcode/driver;
+import ds/tree;
+import math/math;
+import sys/system;
+
+export {
+Expr ::= Add, Sub, Mul, Div, Pow, Var, Int, Neg;
+	Add : (e1: Expr, e2: Expr);
+	Sub : (e1: Expr, e2: Expr);
+    Mul : (e1: Expr, e2: Expr);
+	Div : (e1: Expr, e2: Expr);
+	Pow : (e1: Expr, e2: Expr);
+	Neg : (e: Expr);
+	Int : (i: int);
+	Var : (v: string);
+
+	calculate: (Expr) -> Maybe<int>;
+	setVariableValues: (Expr, Tree<string, int>) -> Expr;
+	getValuesForVars: (Expr) -> Tree<string, int>;
+	getVarList: (Expr) -> [string];
+}
+
+lingoGrammarOp: ref Maybe<[PegOp]> = ref None();
+lingoGrammar() {
+	onlyOnce(lingoGrammarOp, \ -> {
+		compilePegGrammar("#include expr.lingo");
+	});
+}
+parse(source: string) {
+	parsic(lingoGrammar(), source, defaultPegActions);
+}
+
+expToString(ex:Expr){
+	switch (ex) {
+	  	Int(i): i2s(i);
+	  	Neg(e): "(-" + expToString(e) + ")";
+	  	Pow(l, r): "(" + expToString(l) + "^" + expToString(r) + ")";
+	  	Mul(l, r): "(" + expToString(l) + "*" + expToString(r) + ")";
+	  	Div(l, r): "(" + expToString(l) + "/" + expToString(r) + ")";
+	  	Add(l, r): "(" + expToString(l) + "+" + expToString(r) + ")";
+	  	Sub(l, r): "(" + expToString(l) + "-" + expToString(r) + ")";
+	  	Var(v): v; 
+	}
+}
+
+calculate(ex: Expr) {
+	switch (ex) {
+		Int(i): Some(i);
+		Neg(e): maybeMap(calculate(e), \x->(-x));
+		Pow(l, r): maybeMap2(pow)(calculate(l), calculate(r));
+		Mul(l, r): maybeMap2(\x, y-> x*y)(calculate(l), calculate(r));
+		Div(l, r): maybeMap2(\x, y-> x/y)(calculate(l), calculate(r));
+		Add(l, r): maybeMap2(\x, y-> x+y)(calculate(l), calculate(r));
+		Sub(l, r): maybeMap2(\x, y-> x-y)(calculate(l), calculate(r));
+		Var(v): None();
+	}
+}
+
+setVariableValues(ex: Expr, map: Tree<string, int>) {
+	switch (ex) {
+	  	Int(i): Int(i);
+	  	Neg(e): Neg(setVariableValues(e, map));
+	  	Pow(l, r): Pow(setVariableValues(l, map), setVariableValues(r, map));
+	  	Mul(l, r): Mul(setVariableValues(l, map), setVariableValues(r, map));
+	  	Div(l, r): Div(setVariableValues(l, map), setVariableValues(r, map));
+	  	Add(l, r): Add(setVariableValues(l, map), setVariableValues(r, map));
+	  	Sub(l, r): Sub(setVariableValues(l, map), setVariableValues(r, map));
+	 	Var(v): {val = lookupTree(map, v);
+			Int(val ?? val : 0);
+		}
+	}
+}
+
+getVarList(ex: Expr) {
+	switch (ex) {
+	  	Int(i): [];
+	  	Neg(e): getVarList(e);
+	  	Pow(l, r): concat(getVarList(l), getVarList(r));	  
+	  	Mul(l, r): concat(getVarList(l), getVarList(r));
+	  	Div(l, r): concat(getVarList(l), getVarList(r));
+	  	Add(l, r): concat(getVarList(l), getVarList(r));
+	  	Sub(l, r): concat(getVarList(l), getVarList(r));
+	  	Var(v): [v];
+	}
+}
+
+askForVarValue(var: string) {
+	print(var + " = ");
+	s2i(readUntil("\n"));
+}
+
+getValuesForVars(e) {
+	vars = getVarList(e);
+	fold(vars, makeTree(), \tree, var-> setTree(tree, var, askForVarValue(var)))
+}
