@@ -7,9 +7,13 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 
+import static java.lang.Math.min;
+
 public class EditorPanel extends JPanel {
 	public void setCanvas(BufferedImage canvas) {
 		this.canvas = canvas;
+		currentWidth = canvas.getWidth();
+		currentHeight = canvas.getHeight();
 		repaint();
 	}
 
@@ -43,6 +47,8 @@ public class EditorPanel extends JPanel {
 	{
 		currentWidth = width;
 		currentHeight = height;
+		canvas = new BufferedImage(currentWidth, currentHeight, BufferedImage.TYPE_INT_ARGB);
+
 		clear();
 
 		addMouseListener(new MouseAdapter() {
@@ -57,20 +63,25 @@ public class EditorPanel extends JPanel {
 	}
 
 	public void clear() {
-		SwingUtilities.invokeLater(() -> {
-			canvas = new BufferedImage(currentWidth, currentHeight, BufferedImage.TYPE_INT_ARGB);
-			var g = canvas.getGraphics();
-			g.setColor(Color.WHITE);
-			g.fillRect(0,0,currentWidth-1, currentHeight-1);
-			g.dispose();
-			repaint();
-		});
+		var g = canvas.getGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,0,currentWidth, currentHeight);
+		g.dispose();
 	}
 
 	public void newCanvas(int width, int height) {
-		currentHeight = height;
-		currentWidth = width;
+		int oldWidth = canvas.getWidth();
+		int oldHeight = canvas.getHeight();
+		var oldCanvas = canvas;
+		canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		this.currentWidth = width;
+		this.currentHeight = height;
 		clear();
+
+		for (int y = 0; y < min(oldHeight, height); y++)
+			for (int x = 0; x < min(oldWidth, width); x++)
+				canvas.setRGB(x, y, oldCanvas.getRGB(x, y));
+		repaint();
 	}
 
 	public void setTool(Tool tool) {

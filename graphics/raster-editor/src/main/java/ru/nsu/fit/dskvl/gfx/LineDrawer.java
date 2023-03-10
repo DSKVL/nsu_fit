@@ -1,5 +1,6 @@
 package ru.nsu.fit.dskvl.gfx;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -8,6 +9,7 @@ import java.util.Optional;
 public class LineDrawer implements Tool {
     private Optional<Point> previousPoint = Optional.empty();
     private Color color = Color.BLACK;
+    private int colori = color.getRGB();
     private int thickness = 1;
 
     LineDrawer() {}
@@ -28,7 +30,7 @@ public class LineDrawer implements Tool {
                 err -= 2*dx;
                 y++;
             }
-            img.setRGB(x, y, color.getRGB());
+            img.setRGB(x, y, colori);
         }
 
     }
@@ -46,7 +48,7 @@ public class LineDrawer implements Tool {
                 err -= 2*dx;
                 y--;
             }
-            img.setRGB(x, y, color.getRGB());
+            img.setRGB(x, y, colori);
         }
     }
 
@@ -65,7 +67,7 @@ public class LineDrawer implements Tool {
                 err -= 2*dy;
                 x++;
             }
-            img.setRGB(x, y, color.getRGB());
+            img.setRGB(x, y, colori);
         }
     }
     private void drawNegativeSlopeGreaterThanOne(Point a, Point b, BufferedImage img) {
@@ -81,7 +83,7 @@ public class LineDrawer implements Tool {
                 err -= 2*dy;
                 x--;
             }
-            img.setRGB(x, y, color.getRGB());
+            img.setRGB(x, y, colori);
         }
     }
 
@@ -122,17 +124,21 @@ public class LineDrawer implements Tool {
 
     @Override
     public void onClick(MouseEvent e, BufferedImage img) {
-        previousPoint.ifPresentOrElse(
-                point ->  {
-                    drawLine(point, e.getPoint(), img);
-                    previousPoint = Optional.empty();
-                },
-                () -> previousPoint = Optional.of(e.getPoint()));
+        if (e.getX() < img.getWidth() && e.getY() < img.getHeight() && e.getX() >= 0 && e.getY() >= 0)
+            SwingUtilities.invokeLater(() -> {
+                previousPoint.ifPresentOrElse(
+                        point -> {
+                            drawLine(point, e.getPoint(), img);
+                            previousPoint = Optional.empty();
+                        },
+                        () -> previousPoint = Optional.of(e.getPoint()));
+            });
     }
 
     @Override
     public void setColor(Color col) {
         color = col;
+        colori = color.getRGB();
     }
 
     @Override

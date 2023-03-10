@@ -2,6 +2,7 @@ package ru.nsu.fit.dskvl.gfx;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -69,10 +70,13 @@ public class Filler implements Tool {
 
     @Override
     public void onClick(MouseEvent e, BufferedImage img) {
-        var bufferedImage = (BufferedImage) img;
-        var oldColor = bufferedImage.getRGB(e.getX(), e.getY());
-        if (oldColor != color.getRGB())
-            fill(e.getPoint(), oldColor, color.getRGB(), bufferedImage);
+        if (e.getX() < img.getWidth() && e.getY() < img.getHeight() && e.getX() >= 0 && e.getY() >= 0)
+            SwingUtilities.invokeLater(() -> {
+                var bufferedImage = (BufferedImage) img;
+                var oldColor = bufferedImage.getRGB(e.getX(), e.getY());
+                if (oldColor != color.getRGB())
+                    fill(e.getPoint(), oldColor, color.getRGB(), bufferedImage);
+            });
     }
 
     @Override

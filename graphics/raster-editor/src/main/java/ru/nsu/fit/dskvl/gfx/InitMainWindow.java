@@ -10,10 +10,9 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
-//radiobutton
-//resizeexpanding
-//centeroptions
-//holes in shapes
+//scroll on open
+//degs
+
 /**
  * Main window class
  * @author Denis Koval
@@ -22,7 +21,7 @@ public class InitMainWindow extends MainFrame {
 	private static final int minimalWidth = 640;
 	private static final int minimalHeight = 480;
 
-
+	private final JScrollPane scrollPane;
 	private final EditorPanel editorPanel;
 	private final JButton colorButton;
 	public InitMainWindow()
@@ -41,23 +40,37 @@ public class InitMainWindow extends MainFrame {
 
 			addMenuItem("Help/About...", "Shows program version and copyright information", KeyEvent.VK_A, "About.gif", this::onAbout);
 
-			addMenuItem("Tools/Line", "Draw a line", KeyEvent.VK_L, this::setToolLineDrawer);
-			addMenuItem("Tools/Span", "Fill an area with color", KeyEvent.VK_S, this::setToolFiller);
-			addMenuItem("Tools/Shape", "Draw polygon or star", KeyEvent.VK_P, this::setToolShape);
+			ButtonGroup toolbarToolGr = new ButtonGroup();
+			var lineMenuButton = addJRadioButtonMenuItem("Tools/Line", "Draw a line", KeyEvent.VK_L, this::setToolLineDrawer);
+			lineMenuButton.setSelected(true);
+			var spanMenuButton = addJRadioButtonMenuItem("Tools/Span", "Fill an area with color", KeyEvent.VK_S, this::setToolFiller);
+			var shapeMenuButton = addJRadioButtonMenuItem("Tools/Shape", "Draw polygon or star", KeyEvent.VK_P, this::setToolShape);
+			toolbarToolGr.add(lineMenuButton);
+			toolbarToolGr.add(spanMenuButton);
+			toolbarToolGr.add(shapeMenuButton);
+
 			addMenuItem("Tools/Color", "Pick a color", KeyEvent.VK_C, this::chooseColor);
 			addMenuItem("Tools/Clear", "Clears canvas", KeyEvent.VK_B, this::clearCanvas);
 
 			ButtonGroup gr = new ButtonGroup();
-			addToolBarRadioButton("Tools/Line", gr);
-			gr.getElements().nextElement().setSelected(true);
+			ButtonGroup toolbarColorGr = new ButtonGroup();
+			var lineToolBarButton = addToolBarToggleButton("Tools/Line", gr);
+			lineToolBarButton.setIcon(new ImageIcon(getClass().getResource("line.gif")));
+			gr.getElements().nextElement().getModel().setPressed(true);
 			addToolBarSeparator();
-			addToolBarRadioButton("Tools/Span", gr);
+			var spanToolBarButton =	addToolBarToggleButton("Tools/Span", gr);
+			spanToolBarButton.setIcon(new ImageIcon(getClass().getResource("span.gif")));
 			addToolBarSeparator();
-			addToolBarRadioButton("Tools/Shape", gr);
+			var shapeToolBarButton = addToolBarToggleButton("Tools/Shape", gr);
+			shapeToolBarButton.setIcon(new ImageIcon(getClass().getResource("shape.gif")));
 			addToolBarSeparator();
+			lineToolBarButton.addActionListener(e->lineMenuButton.setSelected(true));
+			lineMenuButton.addActionListener(e->lineToolBarButton.setSelected(true));
+			spanToolBarButton.addActionListener(e->spanMenuButton.setSelected(true));
+			spanMenuButton.addActionListener(e->spanToolBarButton.setSelected(true));
+			shapeToolBarButton.addActionListener(e->shapeMenuButton.setSelected(true));
+			shapeMenuButton.addActionListener(e->shapeToolBarButton.setSelected(true));
 			addToolBarButton("Tools/Clear");
-			addToolBarSeparator();
-			addToolBarSeparator();
 			addToolBarSeparator();
 
 			colorButton = createToolBarButton("Tools/Color");
@@ -65,88 +78,43 @@ public class InitMainWindow extends MainFrame {
 			colorButton.setBackground(Color.BLACK);
 			toolBar.add(colorButton);
 
-			var redButton = new JButton();
-			redButton.setForeground(Color.RED);
-			redButton.setBackground(Color.RED);
-
-			var greenButton = new JButton();
-			greenButton.setForeground(Color.GREEN);
-			greenButton.setBackground(Color.GREEN);
-
-			var blueButton = new JButton();
-			blueButton.setForeground(Color.BLUE);
-			blueButton.setBackground(Color.BLUE);
-			var cyanButton = new JButton();
-			cyanButton.setForeground(Color.CYAN);
-			cyanButton.setBackground(Color.CYAN);
-			var yellowButton = new JButton();
-			yellowButton.setForeground(Color.YELLOW);
-			yellowButton.setBackground(Color.YELLOW);
-			var magentaButton = new JButton();
-			magentaButton.setForeground(Color.MAGENTA);
-			magentaButton.setBackground(Color.MAGENTA);
-
-			addToolBarSeparator();
-			toolBar.add(redButton);
-			addToolBarSeparator();
-			toolBar.add(greenButton);
-			addToolBarSeparator();
-			toolBar.add(blueButton);
-			addToolBarSeparator();
-			toolBar.add(cyanButton);
-			addToolBarSeparator();
-			toolBar.add(yellowButton);
-			addToolBarSeparator();
-			toolBar.add(magentaButton);
-			addToolBarSeparator();
-			addToolBarSeparator();
-			addToolBarSeparator();
-			addToolBarSeparator();
-
-
+			editorPanel = new EditorPanel(minimalWidth, minimalHeight);
+			addColor(Color.RED, toolbarColorGr);
+			addColor(Color.GREEN, toolbarColorGr);
+			addColor(Color.BLUE, toolbarColorGr);
+			addColor(Color.CYAN, toolbarColorGr);
+			addColor(Color.MAGENTA, toolbarColorGr);
+			addColor(Color.YELLOW, toolbarColorGr);
+			colorButton.addActionListener(e->toolbarColorGr.clearSelection());
+			toolBar.addSeparator(new Dimension(50, 10));
 			addToolBarButton("Help/About...");
 			addToolBarSeparator();
 			addToolBarButton("File/Exit");
 
-			editorPanel = new EditorPanel(minimalWidth, minimalHeight);
-			redButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.RED);
-				colorButton.setForeground(Color.RED);
-				colorButton.setBackground(Color.RED);
-			});
-			greenButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.GREEN);
-				colorButton.setForeground(Color.GREEN);
-				colorButton.setBackground(Color.GREEN);
-			});
-			blueButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.BLUE);
-				colorButton.setForeground(Color.BLUE);
-				colorButton.setBackground(Color.BLUE);
-			});
-			cyanButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.CYAN);
-				colorButton.setForeground(Color.CYAN);
-				colorButton.setBackground(Color.CYAN);
-			});
-			yellowButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.YELLOW);
-				colorButton.setForeground(Color.YELLOW);
-				colorButton.setBackground(Color.YELLOW);
-			});
-			magentaButton.addActionListener(e->{
-				editorPanel.getTool().setColor(Color.MAGENTA);
-				colorButton.setForeground(Color.MAGENTA);
-				colorButton.setBackground(Color.MAGENTA);
-
-			});
-			var scrollPane = new JScrollPane(editorPanel);
+			scrollPane = new JScrollPane(editorPanel);
 			add(scrollPane);
+			pack();
+			setLocationRelativeTo(null);
 		}
 		catch(Exception e)
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void addColor(Color color, ButtonGroup gr) {
+		var button = new JToggleButton();
+		gr.add(button);
+		button.setPreferredSize(new Dimension(25, 25));
+		button.setForeground(color);
+		button.setBackground(color);
+		addToolBarSeparator();
+		toolBar.add(button);
+		button.addActionListener(e->{
+			editorPanel.getTool().setColor(color);
+			colorButton.setForeground(color);
+			colorButton.setBackground(color);
+		});
 	}
 
 	public void openFile() {
@@ -160,6 +128,7 @@ public class InitMainWindow extends MainFrame {
 		SwingUtilities.invokeLater(() ->{
 			try {
 				editorPanel.setCanvas(ImageIO.read(file));
+				scrollPane.revalidate();
 			} catch (IOException e) {
 				System.err.println("Unable to open");
 			}
@@ -214,12 +183,17 @@ public class InitMainWindow extends MainFrame {
 		dialog.add(okButton);
 		dialog.add(cancelButton);
 		dialog.setSize(300,120);
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);
 
 		if (canceled.get()) return;
 		int width = (int) widthSpinner.getValue();
 		int height = (int) heightSpinner.getValue();
-		SwingUtilities.invokeLater(()-> editorPanel.newCanvas(width, height));
+		SwingUtilities.invokeLater(()-> {
+			editorPanel.newCanvas(width, height);
+			pack();
+		});
 	}
 
 	public void setToolLineDrawer() {
@@ -229,6 +203,7 @@ public class InitMainWindow extends MainFrame {
 		var slider = new JSlider(1, 32);
 		var model = new SpinnerNumberModel(1, 1, 16, 1);
 		var spinner = new JSpinner(model);
+		slider.setValue(1);
 
 		slider.addChangeListener(e->spinner.setValue(slider.getValue()));
 		spinner.addChangeListener(e->slider.setValue((int) spinner.getValue()));
@@ -249,6 +224,8 @@ public class InitMainWindow extends MainFrame {
 		dialog.add(okButton);
 		dialog.add(cancelButton);
 		dialog.setSize(300,120);
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);
 
 		if (canceled.get()) return;
@@ -268,16 +245,24 @@ public class InitMainWindow extends MainFrame {
 				isStar = new JLabel("Is a star"),
 				innerRadius = new JLabel("Inner radius"),
 				angle = new JLabel("Angle");
+		ShapeDrawer drawer = new ShapeDrawer();
+		if (editorPanel.getTool() instanceof ShapeDrawer)
+			drawer = (ShapeDrawer) editorPanel.getTool();
+
 		JCheckBox isStarCheckbox = new JCheckBox();
 		JSlider cornersSlider = new JSlider(3, 16),
 				radiusSlider = new JSlider(1, 100),
 				innerRadiusSlider = new JSlider(1, 100),
-				angleSlider = new JSlider(0, 100);
+				angleSlider = new JSlider(0, 360);
+		cornersSlider.setValue(drawer.getCorners());
+		radiusSlider .setValue(drawer.getOuterRadius());
+		innerRadiusSlider.setValue(drawer.getInnerRadius());
+		angleSlider.setValue((int) (drawer.getAngle()*180/Math.PI));
 
-		SpinnerModel cornerSpinnerModel = new SpinnerNumberModel(3, 3, 16, 1);
-		SpinnerModel radiusSpinnerModel = new SpinnerNumberModel(30, 3, 100, 1);
-		SpinnerModel innerRadiusSpinnerModel = new SpinnerNumberModel(10, 3, 100, 1);
-		SpinnerModel angleSpinnerModel = new SpinnerNumberModel(0, 0, 100, 1);
+		SpinnerModel cornerSpinnerModel = new SpinnerNumberModel(drawer.getCorners(), 3, 16, 1);
+		SpinnerModel radiusSpinnerModel = new SpinnerNumberModel(drawer.getOuterRadius(), 3, 100, 1);
+		SpinnerModel innerRadiusSpinnerModel = new SpinnerNumberModel(drawer.getInnerRadius(), 3, 100, 1);
+		SpinnerModel angleSpinnerModel = new SpinnerNumberModel(angleSlider.getValue(), 0, 360, 1);
 
 		JSpinner cornerSpinner = new JSpinner(cornerSpinnerModel),
 				 radiusSpinner = new JSpinner(radiusSpinnerModel),
@@ -327,6 +312,8 @@ public class InitMainWindow extends MainFrame {
 		dialog.add(okButton);
 		dialog.add(cancelButton);
 		dialog.setSize(400,300);
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);
 
 		if (canceled.get()) return;
@@ -336,12 +323,12 @@ public class InitMainWindow extends MainFrame {
 					cornersSlider.getValue(),
 					radiusSlider.getValue(),
 					innerRadiusSlider.getValue(),
-					(float) (2*Math.PI*((float)angleSlider.getValue()/100))));
+					(float) (Math.PI*((float)angleSlider.getValue()/180))));
 		else
 			editorPanel.setTool(new ShapeDrawer(
 					cornersSlider.getValue(),
 					radiusSlider.getValue(),
-					(float) (2*Math.PI*((float)angleSlider.getValue()/100))));
+					(float) (Math.PI*((float)angleSlider.getValue()/180))));
 	}
 
 	public void chooseColor() {
@@ -352,7 +339,10 @@ public class InitMainWindow extends MainFrame {
 	}
 
 	public void clearCanvas() {
-		editorPanel.clear();
+		SwingUtilities.invokeLater(()-> {
+			editorPanel.clear();
+			repaint();
+		});
 	}
 
 	/**

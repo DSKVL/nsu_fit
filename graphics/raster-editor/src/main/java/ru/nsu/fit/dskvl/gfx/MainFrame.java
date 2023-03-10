@@ -77,7 +77,16 @@ public class MainFrame extends JFrame {
 		item.addActionListener(e -> actionMethod.run());
 		return item;
 	}
-	
+	public JRadioButtonMenuItem createRadioButtonMenuItem(String title, String tooltip, int mnemonic, String icon, Runnable actionMethod) throws SecurityException, NoSuchMethodException
+	{
+		JRadioButtonMenuItem item = new JRadioButtonMenuItem(title);
+		item.setMnemonic(mnemonic);
+		item.setToolTipText(tooltip);
+		if(icon != null)
+			item.setIcon(new ImageIcon(getClass().getResource(icon), title));
+		item.addActionListener(e -> actionMethod.run());
+		return item;
+	}
 	/**
 	 * Shortcut method to create menu item (without icon)
 	 * Note that you have to insert it into proper place by yourself
@@ -153,7 +162,20 @@ public class MainFrame extends JFrame {
 		else 
 			throw new InvalidParameterException("Invalid menu path: "+title);
 	}
-	
+	public JRadioButtonMenuItem addJRadioButtonMenuItem(String title, String tooltip, int mnemonic, String icon, Runnable actionMethod) throws SecurityException, NoSuchMethodException
+	{
+		MenuElement element = getParentMenuElement(title);
+		if(element == null)
+			throw new InvalidParameterException("Menu path not found: "+title);
+		JRadioButtonMenuItem item = createRadioButtonMenuItem(getMenuPathName(title), tooltip, mnemonic, icon, actionMethod);
+		if(element instanceof JMenu)
+			((JMenu)element).add(item);
+		else if(element instanceof JPopupMenu)
+			((JPopupMenu)element).add(item);
+		else
+			throw new InvalidParameterException("Invalid menu path: "+title);
+		return item;
+	}
 	/**
 	 * Creates menu item (without icon) and adds it to the specified menu location
 	 * @param title - menu item title with full path
@@ -168,7 +190,10 @@ public class MainFrame extends JFrame {
 	{
 		addMenuItem(title, tooltip, mnemonic, null, actionMethod);
 	}
-	
+	public JRadioButtonMenuItem addJRadioButtonMenuItem(String title, String tooltip, int mnemonic, Runnable actionMethod) throws SecurityException, NoSuchMethodException
+	{
+		return addJRadioButtonMenuItem(title, tooltip, mnemonic, null, actionMethod);
+	}
 	/**
 	 * Adds menu separator in specified menu location
 	 * @param title - menu location
@@ -253,21 +278,29 @@ public class MainFrame extends JFrame {
 		return button;
 	}
 
-	public JRadioButton createToolBarRadioButton(JMenuItem item, ButtonGroup gr)
+	public JButton createToolBarButton(JMenuItem item, ButtonGroup gr)
 	{
-		JRadioButton button = new JRadioButton(item.getIcon());
+		JButton button = new JButton(item.getIcon());
 		gr.add(button);
 		for(ActionListener listener: item.getActionListeners())
 			button.addActionListener(listener);
 		button.setToolTipText(item.getToolTipText());
 		return button;
 	}
-
+	public JToggleButton createToolBarToggleButton(JMenuItem item, ButtonGroup gr)
+	{
+		JToggleButton button = new JToggleButton(item.getIcon());
+		gr.add(button);
+		for(ActionListener listener: item.getActionListeners())
+			button.addActionListener(listener);
+		button.setToolTipText(item.getToolTipText());
+		return button;
+	}
 	/**
 	 * Creates toolbar button which will behave exactly like specified menuitem
 	 * @param menuPath - path to menu item to create toolbar button from
 	 * @return created toolbar button
-	 * @see MainFrame.getMenuItem
+	 * @see MainFragme.getMenuItem
 	 */
 	public JButton createToolBarButton(String menuPath)
 	{
@@ -277,12 +310,12 @@ public class MainFrame extends JFrame {
 		return createToolBarButton(item);
 	}
 
-	public JRadioButton createToolBarRadioButton(String menuPath, ButtonGroup gr)
+	public JToggleButton createToolBarToggleButton(String menuPath, ButtonGroup gr)
 	{
 		JMenuItem item = (JMenuItem)getMenuElement(menuPath);
 		if(item == null)
 			throw new InvalidParameterException("Menu path not found: "+menuPath);
-		return createToolBarRadioButton(item, gr);
+		return createToolBarToggleButton(item, gr);
 	}
 
 	/**
@@ -294,11 +327,18 @@ public class MainFrame extends JFrame {
 		toolBar.add(createToolBarButton(menuPath));
 	}
 
-	public void addToolBarRadioButton(String menuPath, ButtonGroup gr)
+//	public JButton addToolBarButton(String menuPath, ButtonGroup gr)
+//	{
+//		var button = createToolBarButton(menuPath, gr);
+//		toolBar.add(button);
+//		return button;
+//	}
+	public JToggleButton addToolBarToggleButton(String menuPath, ButtonGroup gr)
 	{
-		toolBar.add(createToolBarRadioButton(menuPath, gr));
+		var button = createToolBarToggleButton(menuPath, gr);
+		toolBar.add(button);
+		return button;
 	}
-
 	/**
 	 * Adds separator to the toolbar
 	 */
