@@ -14,7 +14,7 @@ public class ShapeDrawer implements Tool {
     float angle = 0;
     boolean isAStar = false;
     private Color color = Color.BLACK;
-
+    private int colori = color.getRGB();
     public int getCorners() {
         return corners;
     }
@@ -75,7 +75,7 @@ public class ShapeDrawer implements Tool {
 
     @Override
     public void onClick(MouseEvent e, BufferedImage img) {
-        if (e.getX() < img.getWidth() && e.getY() < img.getHeight() && e.getX() >= 0 && e.getY() >= 0);
+        if (e.getX() < img.getWidth() && e.getY() < img.getHeight() && e.getX() >= 0 && e.getY() >= 0)
             SwingUtilities.invokeLater(() -> {
                 var lineDrawer = new LineDrawer(1);
                 lineDrawer.setColor(color);
@@ -84,13 +84,13 @@ public class ShapeDrawer implements Tool {
 
                 for (int i = 0; i < points.size() - 1; i++) {
                     var a = new Point(points.get(i).x + centerX, points.get(i).y + centerY);
-                    img.setRGB(a.x, a.y, color.getRGB());
+                    img.setRGB(a.x, a.y,colori);
                     var b = new Point(points.get(i + 1).x + centerX, points.get(i + 1).y + centerY);
                     lineDrawer.drawLine(a, b, img);
                 }
                 var a = new Point(points.get(points.size() - 1).x + centerX,
                         points.get(points.size() - 1).y + centerY);
-                img.setRGB(a.x, a.y, color.getRGB());
+                img.setRGB(a.x, a.y, colori);
                 var b = new Point(points.get(0).x + centerX, points.get(0).y + centerY);
 
                 lineDrawer.drawLine(a, b, img);
@@ -100,6 +100,7 @@ public class ShapeDrawer implements Tool {
     @Override
     public void setColor(Color color) {
         this.color = color;
+        colori = color.getRGB();
     }
 
     @Override
