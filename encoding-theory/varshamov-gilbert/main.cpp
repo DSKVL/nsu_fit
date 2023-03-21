@@ -44,29 +44,18 @@ public:
   friend vector operator-(const vector &, const vector &);
   friend vector operator*(unsigned, const vector &);
   friend vector operator/(unsigned, const vector &);
+
 private:
   std::vector<uint32_t> word;
   static std::vector<unsigned> inverses;
-  static std::vector<std::vector<unsigned>> products;
-  static std::vector<std::vector<unsigned>> sums;
-  static std::vector<std::vector<unsigned>> differences;
-
 };
 
 unsigned vector::q = 2;
 std::vector<unsigned> vector::inverses{0, 1};
-std::vector<std::vector<unsigned>> vector::products{{0, 0}, {0, 1}};
-std::vector<std::vector<unsigned>> vector::sums{{0, 1}, {1, 0}};
-std::vector<std::vector<unsigned>> vector::differences{{0, 1}, {1, 0}};
 
 void vector::setQ(unsigned p) {
+  vector::inverses = std::vector(q, 0u);
   vector::q = p;
-  for (auto j = 0u; j < q; j++)
-    for (auto i = 0u; i < q; i++){
-      vector::products[j][i] = (i*j)%q;
-      vector::sums[j][i]     = (i+j)%q;
-      vector::differences[j][i] = (j-i)%q;
-    }
 
   inverses[1] = 1;
   for (auto i{2u}; i < p; ++i)
@@ -86,21 +75,21 @@ void vector::prev() {
 vector operator+(const vector &left, const vector &right) {
   auto result = left;
   std::ranges::transform(left, right, result.begin(),
-                         [](const auto &x, const auto &y) { return vector::sums[x][y]; });
+                 [](const auto &x, const auto &y) { return (x + y) % vector::q;});
   return result;
 }
 
 vector operator-(const vector &left, const vector &right) {
   auto result = left;
   std::ranges::transform(left, right, result.begin(),
-                         [](const auto &x, const auto &y) { return vector::differences[x][y]; });
+                 [](const auto &x, const auto &y) { return (x - y) % vector::q; });
   return result;
 }
 
 vector operator*(const unsigned int scalar, const vector &vec) {
   auto result = vec;
   std::ranges::transform(result, result.begin(),
-                         [=](const auto &x) { return vector::products[scalar][x]; });
+                 [=](const auto &x) { return (scalar * x) % vector::q; });
   return result;
 }
 
@@ -111,19 +100,19 @@ vector operator/(unsigned scalar, const vector &v) {
 
 vector &vector::operator+=(const vector &other) {
   std::ranges::transform(*this, other, begin(),
-                         [=](const auto &x, const auto &y) { return vector::sums[x][y]; });
+                 [=](const auto &x, const auto &y) { return (x + y) % vector::q; });
   return *this;
 }
 
 vector &vector::operator-=(const vector &other) {
   std::ranges::transform(*this, other, begin(),
-                         [=](const auto &x, const auto &y) { return vector::differences[x][y]; });
+                 [=](const auto &x, const auto &y) { return (x - y) % vector::q; });
   return *this;
 }
 
 vector &vector::operator*=(const unsigned int scalar) {
   std::ranges::transform(*this, begin(),
-                         [=](const auto &x) { return vector::products[scalar][x]; });
+                 [=](const auto &x) { return (scalar * x) % vector::q; });
   return *this;
 }
 
@@ -265,10 +254,10 @@ int main() {
 
   auto printElem = [&](const auto &el) { out << el << " "; };
   auto print = [&](const auto &v) {
-      std::ranges::for_each(v, printElem);
+      std::ranges::for_each(v.begin(), v.end(), printElem);
       out << "\n";
   };
-  std::ranges::for_each(H, print);
+  std::ranges::for_each(H.begin(), H.end(), print);
 
   parameters << H[0].size() + H.size() << " " << H[0].size() << " " << d << "\n";
   parameters << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms";
