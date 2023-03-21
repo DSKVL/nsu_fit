@@ -122,9 +122,9 @@ void print(std::vector<vector> &H, std::ofstream &out) {
 }
 
 auto gaussElimination(std::vector<vector> &matrix) {
-  auto column = 0u;
+  auto it = matrix.begin();
   auto n = matrix[0].size();
-  for (auto it = matrix.begin(); column != n; column++) {
+  for (auto column = 0u; column != n; column++) {
     auto nonzeroRow= std::find_if(it, matrix.end(),
                                   [=](const auto &v) { return v[column] != 0; });
     if (nonzeroRow == matrix.end())
@@ -201,7 +201,7 @@ generatePseudoCheckMatrix(const uint32_t n, const uint32_t r,
     while (notLC && std::next_permutation(selectedPositions.begin(), selectedPositions.end()));
     if (notLC) {
       result.push_back(vec);
-      //std::cout << result.size() << " so far.\n";
+      std::cerr << result.size() << " so far.\n";
     }
   }
 
@@ -273,8 +273,6 @@ int main(int argc, char** argv) {
     paramsOut << "Time: " << millis<< "ms";
     return 0;
   }
-  std::cout << n << " " << r << " " << d << " "
-            << H[0].size() << " " << H[0].size() - H.size() << " "
-            << actualD << "\n";
-  std::cerr << n << " " << r << " " << d << " " << millis << "\n";
+  std::cout << H[0].size() << " " << H[0].size() - H.size() << " "
+            << actualD << " " << millis << "\n";
 }
