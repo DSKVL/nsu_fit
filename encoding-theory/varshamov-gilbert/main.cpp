@@ -1,18 +1,21 @@
-#include <functional>
-#include <vector>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <optional>
 #include <numeric>
-#include <ranges>
 #include <chrono>
+#include <vector>
 
 class vector {
 public:
-  static void setQ(unsigned p);
+  static void setQ(unsigned p, std::vector<unsigned> &,
+                   std::vector<unsigned> &,
+                   std::vector<unsigned> &,
+                   std::vector<unsigned> &,
+                   std::vector<unsigned> &);
   static unsigned q;
+  static std::vector<unsigned> *sums, *products, *differences, *divs;
 
   vector() = default;
   explicit vector(const unsigned n) : word(n, 0) {}
@@ -39,27 +42,41 @@ public:
   vector &operator+=(const vector &);
   vector &operator*=(unsigned);
   vector &operator/=(unsigned);
-
-  friend vector operator+(const vector &, const vector &);
-  friend vector operator-(const vector &, const vector &);
-  friend vector operator*(unsigned, const vector &);
-  friend vector operator/(unsigned, const vector &);
+  friend vector operator+(const vector &l,  const vector &r) { return vector(l) += r; }
+  friend vector operator-(const vector &l,  const vector &r) { return vector(l) -= r; }
+  friend vector operator*(const unsigned s, const vector &v) { return vector(v) *= s; }
+  friend vector operator/(const unsigned s, const vector &v) { return vector(v) /= s; }
 
 private:
   std::vector<uint32_t> word;
-  static std::vector<unsigned> inverses;
 };
 
 unsigned vector::q = 2;
-std::vector<unsigned> vector::inverses{0, 1};
+std::vector<unsigned> *vector::sums, *vector::products,
+                      *vector::differences, *vector::divs;
 
-void vector::setQ(unsigned p) {
-  vector::inverses = std::vector(q, 0u);
+void vector::setQ(unsigned p, std::vector<unsigned> &inver,
+                  std::vector<unsigned> &s,
+                  std::vector<unsigned> &pr,
+                  std::vector<unsigned> &dif,
+                  std::vector<unsigned> &div) {
+  vector::sums = &s;
+  vector::products = &pr;
+  vector::differences = &dif;
+  vector::divs = &div;
   vector::q = p;
 
-  inverses[1] = 1;
+  inver[1] = 1;
   for (auto i{2u}; i < p; ++i)
-    inverses[i] = (p - (p / i) * inverses[p % i] % p) % p;
+    inver[i] = (p - (p / i) * inver[p % i] % p) % p;
+
+  for (auto i{0u}; i < p; i++)
+    for (auto j{0u}; j < p; j++) {
+      s[i * p + j] = (i + j) % p;
+      pr[i * p + j] = (i * j) % p;
+      dif[i * p + j] = (i - j) % p;
+      div[i * p + j] = pr[i * p + inver[j]];
+    }
 }
 
 void vector::prev() {
@@ -72,76 +89,57 @@ void vector::prev() {
   }
 }
 
-vector operator+(const vector &left, const vector &right) {
-  auto result = left;
-  std::ranges::transform(left, right, result.begin(),
-                 [](const auto &x, const auto &y) { return (x + y) % vector::q;});
-  return result;
-}
-
-vector operator-(const vector &left, const vector &right) {
-  auto result = left;
-  std::ranges::transform(left, right, result.begin(),
-                 [](const auto &x, const auto &y) { return (x - y) % vector::q; });
-  return result;
-}
-
-vector operator*(const unsigned int scalar, const vector &vec) {
-  auto result = vec;
-  std::ranges::transform(result, result.begin(),
-                 [=](const auto &x) { return (scalar * x) % vector::q; });
-  return result;
-}
-
-vector operator/(unsigned scalar, const vector &v) {
-  auto result = v;
-  return result /= vector::inverses[scalar];
-}
-
+inline unsigned add(const uint32_t x, const uint32_t y) {
+  return (*vector::sums)[x*vector::q+y]; }
 vector &vector::operator+=(const vector &other) {
-  std::ranges::transform(*this, other, begin(),
-                 [=](const auto &x, const auto &y) { return (x + y) % vector::q; });
+  std::transform(begin(), end(), other.begin(), begin(), add);
   return *this;
 }
-
+inline unsigned sub(const uint32_t x, const uint32_t y) {
+  return (*vector::differences)[x*vector::q+y]; }
 vector &vector::operator-=(const vector &other) {
-  std::ranges::transform(*this, other, begin(),
-                 [=](const auto &x, const auto &y) { return (x - y) % vector::q; });
+  std::transform(begin(), end(), other.begin(), begin(), sub);
   return *this;
 }
-
-vector &vector::operator*=(const unsigned int scalar) {
-  std::ranges::transform(*this, begin(),
-                 [=](const auto &x) { return (scalar * x) % vector::q; });
+vector &vector::operator*=(const unsigned int s) {
+  std::transform(begin(), end(), begin(), [=](const auto &x) {
+                     return (*vector::products)[s*vector::q+x]; });
   return *this;
 }
-
 vector &vector::operator/=(const unsigned int scalar) {
-  return *this *= inverses[scalar];
+  std::transform(begin(), end(), begin(), [=](const auto &x) {
+                     return (*vector::divs)[x*vector::q+scalar]; });
+  return *this;
+}
+
+void print(std::vector<vector> &H, std::ofstream &out) {
+  auto printElem = [&](const auto &el) { out << el << " "; };
+  auto print = [&](const auto &v) {
+      std::ranges::for_each(v.begin(), v.end(), printElem);
+      out << "\n";
+  };
+  std::ranges::for_each(H.begin(), H.end(), print);
 }
 
 auto gaussElimination(std::vector<vector> &matrix) {
   auto column = 0u;
   auto n = matrix[0].size();
-  for (auto it = matrix.begin(); it != matrix.end() && column != n; it++, column++) {
-    auto nonzeroRowIter = std::find_if(it, matrix.end(),
-                                       [=](const auto &v) { return v[column] != 0; });
-    if (nonzeroRowIter == matrix.end())
+  for (auto it = matrix.begin(); column != n; column++) {
+    auto nonzeroRow= std::find_if(it, matrix.end(),
+                                  [=](const auto &v) { return v[column] != 0; });
+    if (nonzeroRow == matrix.end())
       continue;
 
-    std::iter_swap(it, nonzeroRowIter);
+    std::iter_swap(it, nonzeroRow);
     (*it) /= (*it)[column];
     std::transform(it + 1, matrix.end(), it + 1,
-                   [=](auto &v) { return v -= v[column] * (*it); });
-
+                   [&](auto &v) { return v -= v[column] * (*it); });
+    it++;
   }
-  (void) std::remove_if(matrix.begin(), matrix.end(),
-                        [](const auto &v) {
-                            return std::transform_reduce(
-                                    v.begin(), v.end(), true,
-                                    std::logical_and<>(),
-                                    [](const auto &el) { return el == 0; });
-                        });
+  std::erase_if(matrix, [](const auto &v) { return std::transform_reduce(
+          v.begin(), v.end(), true,
+          std::logical_and<>(),
+          [](const auto &el) { return el == 0; }); });
 }
 
 bool aLinearCombinationOf(const vector &vec, const std::vector<vector> &vectors) {
@@ -162,23 +160,23 @@ auto binomialCoefficient(const uint32_t n, const uint32_t k) {
 auto satisfiesVarshamovGilbertBorder(const uint32_t n, const uint32_t r,
                                      const uint32_t d, const uint32_t q) {
   uint32_t sum = 0;
-  for (auto i{0u}; i < d - 2; i++) sum += binomialCoefficient(n - 1, i);
-  return sum < std::pow(q, r);
+  for (auto i{0u}; i < d - 1; i++)
+    sum += binomialCoefficient(n - 1, i) *
+           (uint32_t) (pow(q - 1, i) + 0.01);
+  bool ok = sum < std::pow(q, r);
+  if (!ok) std::cout << sum << ">=" << std::pow(q, r) << "\n";
+  return ok;
 }
 
-auto selectVectors(std::vector<vector> vectors, const std::vector<bool> &selected) {
-//  zip(vectors, selected) | filter([](auto pair){ return pair.second; })
-//                         | transform([](auto pair){ return pair.first; });
-//  return vectors;
-  return std::transform_reduce(vectors.begin(), vectors.end(),
-                               selected.begin(),
+auto selectVectors(std::vector<vector> v, const std::vector<bool> &s) {
+  return std::transform_reduce(v.begin(), v.end(), s.begin(),
                                std::vector<vector>(),
-                               [](std::vector<vector> vec, std::vector<vector> result) {
-                                   result.insert(result.end(), vec.begin(), vec.end());
-                                   return result;
+                               [](std::vector<vector> vec, std::vector<vector> res) {
+                                   res.insert(res.end(), vec.begin(), vec.end());
+                                   return res;
                                },
-                               [](auto &vec, const auto &isSelected) -> std::vector<vector> {
-                                   if (isSelected) return {vec};
+                               [](auto &vec, const auto &isSel) -> std::vector<vector> {
+                                   if (isSel) return {vec};
                                    return {};
                                });
 }
@@ -195,15 +193,16 @@ generatePseudoCheckMatrix(const uint32_t n, const uint32_t r,
 
   for (auto vec{maxVector}; vec != minVector && result.size() != n; vec.prev()) {
     auto selectedPositions = std::vector<bool>(result.size(), false);
-    std::fill_n(selectedPositions.begin(), std::min(d - 1, (uint32_t) result.size()), true);
+    std::fill_n(selectedPositions.begin(), std::min(d - 2, (uint32_t) result.size()), true);
     std::reverse(selectedPositions.begin(), selectedPositions.end());
     auto notLC = true;
-    do
-      if (aLinearCombinationOf(vec, selectVectors(result, selectedPositions)))
+    do if (aLinearCombinationOf(vec, selectVectors(result, selectedPositions)))
         notLC = false;
     while (notLC && std::next_permutation(selectedPositions.begin(), selectedPositions.end()));
-    if (notLC)
+    if (notLC) {
       result.push_back(vec);
+      //std::cout << result.size() << " so far.\n";
+    }
   }
 
   return result;
@@ -234,31 +233,48 @@ auto findD(unsigned d, const std::vector<vector> &H) {
   return d;
 }
 
-
-int main() {
-  auto in = std::ifstream("input.txt");
+int main(int argc, char** argv) {
   uint32_t n, r, d, q;
-  in >> n >> r >> d >> q;
+  if (argc <= 1) {
+    auto in = std::ifstream("input.txt");
+    in >> n >> r >> d >> q;
+  } else {
+    if (argc != 5) std::cout << "Формат аргументов: n r d q";
+    n = std::stoul(argv[1]);
+    r = std::stoul(argv[2]);
+    d = std::stoul(argv[3]);
+    q = std::stoul(argv[4]);
+  }
+  auto inv = std::vector(q, 0u);
+  auto sum = std::vector(q * q, 0u);
+  auto prod = std::vector(q * q, 0u);
+  auto dif = std::vector(q * q, 0u);
+  auto div = std::vector(q * q, 0u);
+
   auto start = std::chrono::steady_clock::now();
-  vector::setQ(q);
+  vector::setQ(q, inv, sum, prod, dif, div);
   auto pseudoCheckMatrix = generatePseudoCheckMatrix(n, r, d, q);
-  if (!pseudoCheckMatrix.has_value())
+  if (!pseudoCheckMatrix.has_value()) {
+    std::cout << n << " " << r << " " << d << " garbage in";
     return 0;
+  }
   auto H = transpose(pseudoCheckMatrix.value());
   gaussElimination(H);
-  d = findD(d, H);
+  auto actualD = findD(d, H);
   auto end = std::chrono::steady_clock::now();
 
-  auto out = std::ofstream("output.txt");
-  auto parameters = std::ofstream("parameters.txt");
+  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-  auto printElem = [&](const auto &el) { out << el << " "; };
-  auto print = [&](const auto &v) {
-      std::ranges::for_each(v.begin(), v.end(), printElem);
-      out << "\n";
-  };
-  std::ranges::for_each(H.begin(), H.end(), print);
-
-  parameters << H[0].size() + H.size() << " " << H[0].size() << " " << d << "\n";
-  parameters << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms";
+  if (argc <= 1) {
+    auto out = std::ofstream("output.txt");
+    print(H, out);
+    auto paramsOut = std::ofstream("parameters.txt");
+    paramsOut << H[0].size() << " " << H[0].size() - H.size() << " " << d << "\n";
+    paramsOut << "Time: " << millis<< "ms";
+    return 0;
+  }
+  std::cout << n << " " << r << " " << d << " "
+            << H[0].size() << " " << H[0].size() - H.size() << " "
+            << actualD << "\n";
+  std::cerr << n << " " << r << " " << d << " " << millis << "\n";
 }
