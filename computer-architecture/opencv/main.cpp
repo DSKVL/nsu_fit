@@ -1,5 +1,5 @@
 #include <iostream>
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 int main() {
     cv::Mat frame, input_frame, output_frame;

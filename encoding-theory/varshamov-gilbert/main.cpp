@@ -12,7 +12,6 @@ public:
   static void setQ(unsigned p, std::vector<unsigned> &,
                    std::vector<unsigned> &,
                    std::vector<unsigned> &,
-                   std::vector<unsigned> &,
                    std::vector<unsigned> &);
   static unsigned q;
   static std::vector<unsigned> *sums, *products, *differences, *divs;
@@ -55,8 +54,7 @@ unsigned vector::q = 2;
 std::vector<unsigned> *vector::sums, *vector::products,
                       *vector::differences, *vector::divs;
 
-void vector::setQ(unsigned p, std::vector<unsigned> &inver,
-                  std::vector<unsigned> &s,
+void vector::setQ(unsigned p, std::vector<unsigned> &s,
                   std::vector<unsigned> &pr,
                   std::vector<unsigned> &dif,
                   std::vector<unsigned> &div) {
@@ -65,7 +63,7 @@ void vector::setQ(unsigned p, std::vector<unsigned> &inver,
   vector::differences = &dif;
   vector::divs = &div;
   vector::q = p;
-
+  auto inver = std::vector(q, 0u);
   inver[1] = 1;
   for (auto i{2u}; i < p; ++i)
     inver[i] = (p - (p / i) * inver[p % i] % p) % p;
@@ -245,14 +243,13 @@ int main(int argc, char** argv) {
     d = std::stoul(argv[3]);
     q = std::stoul(argv[4]);
   }
-  auto inv = std::vector(q, 0u);
   auto sum = std::vector(q * q, 0u);
   auto prod = std::vector(q * q, 0u);
   auto dif = std::vector(q * q, 0u);
   auto div = std::vector(q * q, 0u);
 
   auto start = std::chrono::steady_clock::now();
-  vector::setQ(q, inv, sum, prod, dif, div);
+  vector::setQ(q, sum, prod, dif, div);
   auto pseudoCheckMatrix = generatePseudoCheckMatrix(n, r, d, q);
   if (!pseudoCheckMatrix.has_value()) {
     std::cout << n << " " << r << " " << d << " garbage in";

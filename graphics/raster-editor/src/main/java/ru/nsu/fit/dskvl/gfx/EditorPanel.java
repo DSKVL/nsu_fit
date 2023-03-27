@@ -43,8 +43,7 @@ public class EditorPanel extends JPanel {
 		this.currentHeight = currentHeight;
 	}
 
-	public EditorPanel(int width, int height)
-	{
+	public EditorPanel(int width, int height) {
 		currentWidth = width;
 		currentHeight = height;
 		canvas = new BufferedImage(currentWidth, currentHeight, BufferedImage.TYPE_INT_ARGB);

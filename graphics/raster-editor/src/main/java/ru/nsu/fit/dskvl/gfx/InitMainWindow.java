@@ -55,14 +55,14 @@ public class InitMainWindow extends MainFrame {
 			ButtonGroup gr = new ButtonGroup();
 			ButtonGroup toolbarColorGr = new ButtonGroup();
 			var lineToolBarButton = addToolBarToggleButton("Tools/Line", gr);
-			lineToolBarButton.setIcon(new ImageIcon(getClass().getResource("line.gif")));
+			//lineToolBarButton.setIcon(new ImageIcon(getClass().getResource("line.gif")));
 			gr.getElements().nextElement().getModel().setPressed(true);
 			addToolBarSeparator();
 			var spanToolBarButton =	addToolBarToggleButton("Tools/Span", gr);
-			spanToolBarButton.setIcon(new ImageIcon(getClass().getResource("span.gif")));
+			//spanToolBarButton.setIcon(new ImageIcon(getClass().getResource("span.gif")));
 			addToolBarSeparator();
 			var shapeToolBarButton = addToolBarToggleButton("Tools/Shape", gr);
-			shapeToolBarButton.setIcon(new ImageIcon(getClass().getResource("shape.gif")));
+			//shapeToolBarButton.setIcon(new ImageIcon(getClass().getResource("shape.gif")));
 			addToolBarSeparator();
 			lineToolBarButton.addActionListener(e->lineMenuButton.setSelected(true));
 			lineMenuButton.addActionListener(e->lineToolBarButton.setSelected(true));

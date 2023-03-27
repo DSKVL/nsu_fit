@@ -72,8 +72,8 @@ public class MainFrame extends JFrame {
 		JMenuItem item = new JMenuItem(title);
 		item.setMnemonic(mnemonic);
 		item.setToolTipText(tooltip);
-		if(icon != null)
-			item.setIcon(new ImageIcon(getClass().getResource(icon), title));
+		//if(icon != null)
+			//item.setIcon(new ImageIcon(getClass().getResource(icon), title));
 		item.addActionListener(e -> actionMethod.run());
 		return item;
 	}

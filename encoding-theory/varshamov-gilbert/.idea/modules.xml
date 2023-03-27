@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/multithread-jacobi.iml" filepath="$PROJECT_DIR$/.idea/multithread-jacobi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/varshamov-gilbert.iml" filepath="$PROJECT_DIR$/.idea/varshamov-gilbert.iml" />
     </modules>
   </component>
 </project>

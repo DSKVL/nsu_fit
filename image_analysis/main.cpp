@@ -1,4 +1,5 @@
 #include <iostream>
+#include <concepts>
 #include <filesystem>
 #include <set>
 #include <functional>
@@ -14,8 +15,8 @@ void removeVignette() {
   
 }
 
-void apply(const cv::Mat& source, cv::Mat& destination, 
-  std::vector<std::function<void(const cv::Mat&, cv::Mat&)>> operators) {
+template<std::regular_invocable<const cv::Mat&, cv::Mat&> op>
+void apply(const cv::Mat& source, cv::Mat& destination, std::vector<op> operators) {
   if (operators.empty()) {
     destination = source;
     return;
@@ -25,11 +26,11 @@ void apply(const cv::Mat& source, cv::Mat& destination,
   auto opIt = operators.begin();
   cv::Mat *d = &destination, *i = &intermediate;
   if (operators.size() >= 1) {
-    (*opIt)(source, destination);
+    std::invoke((*opIt), source, destination);
     opIt++;
   }
   for (;opIt != operators.end(); ++opIt) {
-    (*opIt)(*d, *i);
+    std::invoke((*opIt), *d, *i);
     std::swap(d, i);
   }  
   destination = *d;
@@ -57,16 +58,18 @@ int main(int argc, char** argv) {
   first = imread(*iter, IMREAD_GRAYSCALE);
 
   std::function<void(const Mat&, Mat&)> 
-    blur     =  [](const Mat& s, Mat& d){ GaussianBlur(s, d, Size(15, 15), 7, 7); },
+    blur     =  [](const Mat& s, Mat& d){ GaussianBlur(s, d, Size(19, 19), 5, 5); },
     erode    = [&](const Mat& s, Mat& d){ cv::erode(s, d, ker, Point(-1, -1), 2, 1, 1); },
     dilate   = [&](const Mat& s, Mat& d){ cv::dilate(s,d,ker, Point(-1, -1), 2, 1, 1); },
-    subFirst = [&](const Mat& s, Mat& d){ cv::addWeighted(s, -1.0, first, 1.0, 0, d); };
+    subFirst = [&](const Mat& s, Mat& d){ cv::addWeighted(s, -1.0, first, 1.0, 0, d); },
+    canny    = [] (const Mat& s, Mat& d){ cv::Canny(s, d, 1.0, 1.0);};
   
   for (;iter != imagesPaths.end(); ++iter) {
     std::cout << *iter << '\n';
     img = imread(*iter, IMREAD_GRAYSCALE);
-    apply(img, proc, 
-      { subFirst });
+    apply(img, proc, std::vector{
+      blur
+    });
     imshow("original", img);
     imshow("processed", proc);
     waitKey(0);
