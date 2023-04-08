@@ -9,25 +9,13 @@ import javax.swing.*;
 
 //НЕ ЗАБЫТЬ! SwingUtils.invokeLater();
 //revalidate()
-//TODO while processing
-// this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-//...
-//this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
 //Акварелизация - медианное усреднение(5х5) -> ядро резкости.
 
-//Дизеринг. Флойд-стейнберг. Ошибка раньше времени не отсекается.
-//Упорядоченный дизеринг.
-/*Идея: изначально диапазон [0:255]. Делим пространство на некоторое
-* МАТРИЦА НОРМИРОВАННАЯ, К ИНЕДКСУ LUT r=255/(N-1), N- число цветов
-* c_new = lut[c_old + r*(M(ij mod n )-1/2)]
-
- */
 public class FilterPanel extends JPanel {
     private BufferedImage processedImage;
     private BufferedImage originalImage;
     private boolean showsProcessed = true;
-    private boolean fits = true;
+    private boolean fits = false;
 
     private JImagePanel imagePanel;
     private Filter currentFilter;
@@ -53,6 +41,10 @@ public class FilterPanel extends JPanel {
         imagePanel.setImage(processedImage, true);
     }
     public BufferedImage getProcessedImage() { return processedImage; }
+
+    public void setHint(Object obj) {
+        imagePanel.setInterpolationHint(obj);
+    }
 
     public static BufferedImage deepCopy(BufferedImage bi) {
         var cm = bi.getColorModel();
@@ -81,13 +73,15 @@ public class FilterPanel extends JPanel {
         //TODO
     }
 
-//    public void changeFit() {
-//        if (fits) {
-//            imagePanel.realSize();
-//            return;
-//        }
-//        imagePanel.fitScreen();
-//    }
+    public void changeFit() {
+        if (!fits) {
+            imagePanel.realSize();
+            fits = !fits;
+            return;
+        }
+        imagePanel.fitScreen();
+        fits = !fits;
+    }
 
     public void setCurrentFilter(Filter currentFilter) {
         this.currentFilter = currentFilter;

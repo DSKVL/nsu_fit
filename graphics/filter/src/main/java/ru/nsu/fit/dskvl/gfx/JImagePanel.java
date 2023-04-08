@@ -24,6 +24,17 @@ public class JImagePanel extends JPanel implements MouseListener, MouseMotionLis
     private Dimension imSize = null;	// real image size
     private int lastX=0, lastY=0;		// last captured mouse coordinates
     private final double zoomK = 0.05;  // scroll zoom coefficient
+    private Object interpolationHint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+
+    public Object getInterpolationHint() {
+        return interpolationHint;
+    }
+
+    public void setInterpolationHint(Object interpolationHint) {
+        this.interpolationHint = interpolationHint;
+        spIm.paintAll(spIm.getGraphics());
+        revalidate();
+    }
 
     public JImagePanel(JScrollPane scrollPane, FilterPanel parentComponent) throws Exception {
         if (scrollPane == null)
@@ -52,8 +63,12 @@ public class JImagePanel extends JPanel implements MouseListener, MouseMotionLis
         if (img == null) {
             g.setColor(Color.LIGHT_GRAY);
             g.fillRect(0, 0, getWidth(), getHeight());
-        } else
-            g.drawImage(img, 0, 0, panelSize.width, panelSize.height, null);
+        } else {
+            var g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationHint);
+            g2.drawImage(img, 0, 0, panelSize.width, panelSize.height, null);
+        }
+
     }
 
 //	public void update(Graphics g) {

@@ -2,12 +2,11 @@ package ru.nsu.fit.dskvl.gfx;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.Serial;
 import java.security.InvalidParameterException;
-
-import javax.swing.*;
 
 public class MainFrame extends JFrame {
     @Serial

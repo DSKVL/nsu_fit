@@ -12,6 +12,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 
+//TODO Слайдеры
+
 public class InitMainWindow extends MainFrame {
     private static final int minimalWidth = 640;
     private static final int minimalHeight = 480;
@@ -31,8 +33,10 @@ public class InitMainWindow extends MainFrame {
             addSubMenu("Filters", KeyEvent.VK_T);
             addSubMenu("Help", KeyEvent.VK_H);
             addMenuItem("File/Open", "Open a file", KeyEvent.VK_O, this::openFile);
+            addMenuItem("File/Real size", "Fit to screen or real size", 0, this::changeView);
             addMenuItem("File/Save", "Save a file", KeyEvent.CTRL_DOWN_MASK | KeyEvent.VK_S, this::saveFile);
             addMenuItem("File/Exit", "Exit application", KeyEvent.VK_X, "Exit.gif", this::onExit);
+            addMenuItem("Image/Interpolation", "Choose interpolation option", 0, null, this::interpolationMode);
             addMenuItem("Help/About...", "Shows program version and copyright information", KeyEvent.VK_A, "About.gif", this::onAbout);
 
 
@@ -57,9 +61,16 @@ public class InitMainWindow extends MainFrame {
             addFilter("Gamma Correction", "Corrects gamma", 0, this::setUpGammaCorrection);
             addFilter("Roberts", "Border detection", 0, this::setUpRobertsOperator);
             addFilter("Sobel", "Border detection", 0, this::setUpSobelOperator);
-            addFilter("Dithering", "DIthers", 0, this::setUpDithering);
+            addFilter("Dithering", "Dithers", 0, this::setUpOrderedDithering);
+            addFilter("Floyd-Steinberg", "Dithers", 0, this::setUpUnorderedDithering);
+            addFilter("Rotate", "Rotates", 0, this::setupRotate);
+            addFilter("Aquarelizsation", "Nice filter", 0, setUpFilter(AquarelisationFilter.filter));
+            addFilter("Erode", "Erodes", 0, this::setUpErode);
+            addFilter("Dilate", "Dilates", 0, this::setUpDilate);
+
 
             addToolBarSeparator();
+            addToolBarToggleButton("File/Real size");
             addToolBarButton("Help/About...");
             addToolBarButton("File/Exit");
             pack();
@@ -69,11 +80,32 @@ public class InitMainWindow extends MainFrame {
         }
     }
 
-    private Optional<Object> oneParametricDialog(String title, String parameter, SpinnerNumberModel model) {
+    public void changeView() {
+        filterPanel.changeFit();
+    }
+
+    public void interpolationMode() {
+        Object[] options = new Object[]{"Bilinear", "Bicubic", "Nearest"};
+        int parameter = JOptionPane.showOptionDialog(null, "Interpolation options",
+                "Interpolation",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.DEFAULT_OPTION, null, options, options[0]);
+        switch (parameter) {
+            case 1 -> filterPanel.setHint(RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            case 2-> filterPanel.setHint(RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            default ->  filterPanel.setHint(RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        }
+    }
+
+    private Optional<Object[]> showDialog(String title, String[] parameters, SpinnerNumberModel[] models) {
+        var parametersCount = parameters.length;
         var dialog = new JDialog(this, title, true);
-        var layout = new GridLayout(2, 3);
-        var label = new JLabel(parameter);
-        var spinner = new JSpinner(model);
+        var layout = new GridLayout(1 + parametersCount, 2, 10, 15);
+        var labels = new JLabel[parametersCount];
+        var spinners = new JSpinner[parametersCount];
+        for (int i = 0; i < parametersCount; i++) {
+            labels[i] = new JLabel(parameters[i]);
+            spinners[i] = new JSpinner(models[i]);
+        }
 
         JButton okButton = new JButton ("OK"),
                 cancelButton = new JButton("Cancel");
@@ -84,32 +116,38 @@ public class InitMainWindow extends MainFrame {
             dialog.setVisible(false);
         });
 
-        dialog.setLayout(layout);
-        dialog.add(label);
-        dialog.add(spinner);
-        dialog.add(okButton);
-        dialog.add(cancelButton);
-        dialog.setSize(300,120);
+
+        var panel = new JPanel(layout);
+        int eb = 10;
+        panel.setBorder(BorderFactory.createEmptyBorder(eb, eb, eb, eb));
+        for (int i = 0; i < parametersCount; i++) {
+            panel.add(labels[i]);
+            panel.add(spinners[i]);
+        }
+        panel.add(okButton);
+        panel.add(cancelButton);
+        dialog.add(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
 
         if (canceled.get()) return Optional.empty();
-        return Optional.of(spinner.getValue());
+        var res = new Object[parametersCount];
+        for (int i = 0; i < parametersCount; i++)
+            res[i] = spinners[i].getValue();
+        return Optional.of(res);
     }
 
     private void setUpBlur() {
-        var model = new SpinnerNumberModel(3, 3, 11, 2);
+        var model = new SpinnerNumberModel(BlurFilter.blur.getDiameter(), 3, 11, 2);
 
-        oneParametricDialog("Kernel size", "Size", model).ifPresent(
+        showDialog("Kernel size", new String[]{"Size"}, new SpinnerNumberModel[]{model}).ifPresent(
                 kernelSize -> SwingUtilities.invokeLater(()->{
-                    var size = (int) kernelSize;
+                    var size = (int) kernelSize[0];
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-                    if (size == 3) filterPanel.setCurrentFilter(AreaFilter.gaussianBlur3);
-                    else if (size == 5) filterPanel.setCurrentFilter(AreaFilter.gaussianBlur5);
-                    else if (size == 7 | size == 9 | size == 11)
-                        filterPanel.setCurrentFilter(AreaFilter.medianFilter((int) kernelSize));
+                    BlurFilter.blur.setDiameter(size);
+                    filterPanel.setCurrentFilter(BlurFilter.blur);
 
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 })
@@ -117,54 +155,131 @@ public class InitMainWindow extends MainFrame {
     }
 
     public void setUpGammaCorrection() {
-        var model = new SpinnerNumberModel(1.0, 0.01, 3.0, 0.01);
+        var model = new SpinnerNumberModel(GammaFilter.gammaCorrection.getGamma(), 0.01, 3.0, 0.01);
 
-        oneParametricDialog("Gamma correction", "Gamma", model).ifPresent(
+        showDialog("Gamma correction", new String[]{"Gamma"}, new SpinnerNumberModel[]{model}).ifPresent(
                 gamma -> SwingUtilities.invokeLater(()->{
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    filterPanel.setCurrentFilter(AreaFilter.gammaCorrection((double) gamma));
+                    GammaFilter.gammaCorrection.setGamma((Double) gamma[0]);
+                    filterPanel.setCurrentFilter(GammaFilter.gammaCorrection);
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 })
         );
     }
 
     public void setUpSobelOperator() {
-        var model = new SpinnerNumberModel(128, 1, 255, 1);
+        var model = new SpinnerNumberModel(SobelOperator.filter.getThreshold(), 1, 255, 1);
 
-        oneParametricDialog("Sobel operator", "Threshold", model).ifPresent(
+        showDialog("Sobel operator", new String[]{"Threshold"}, new SpinnerNumberModel[]{model}).ifPresent(
                 threshold -> SwingUtilities.invokeLater(()->{
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    filterPanel.setCurrentFilter(AreaFilter.sobelOperator((int) threshold));
+                    SobelOperator.filter.setThreshold((int) threshold[0]);
+                    filterPanel.setCurrentFilter(SobelOperator.filter);
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 })
         );
     }
 
     public void setUpRobertsOperator() {
-        var model = new SpinnerNumberModel(128, 1, 255, 1);
+        var model = new SpinnerNumberModel(RobertsOperator.filter.getThreshold(), 1, 255, 1);
 
-        oneParametricDialog("Roberts operator", "Threshold", model).ifPresent(
+        showDialog("Roberts operator", new String[]{"Threshold"}, new SpinnerNumberModel[]{model}).ifPresent(
                 threshold -> SwingUtilities.invokeLater(()->{
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    filterPanel.setCurrentFilter(AreaFilter.robertsOperator((int) threshold));
+                    RobertsOperator.filter.setThreshold((int) threshold[0]);
+                    filterPanel.setCurrentFilter(RobertsOperator.filter);
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 })
         );
     }
 
-    public void setUpDithering() {
-        var model = new SpinnerNumberModel(4, 1, 8, 1);
-        oneParametricDialog("Unordered dithering", "Bitrate", model).ifPresent(
-                bitrate -> SwingUtilities.invokeLater(()->{
+    public void setUpOrderedDithering() {
+        var colors = DitheringFilter.orderedDithering.getColors();
+        var r = new SpinnerNumberModel(colors[0], 1, 128, 1);
+        var g = new SpinnerNumberModel(colors[1], 1, 128, 1);
+        var b = new SpinnerNumberModel(colors[2], 1, 128, 1);
+
+        showDialog("Ordered dithering", new String[]{"Reds", "Greens", "Blues"}, new SpinnerNumberModel[]{r, g, b}).ifPresent(
+                colorsObj -> SwingUtilities.invokeLater(()->{
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    filterPanel.setCurrentFilter(new DitheringFilter((int) bitrate, 2));
+                    var cols = new int[3];
+                    for (int i = 0; i < 3; i++)
+                        cols[i] = (int) colorsObj[i];
+                    DitheringFilter.orderedDithering.setColors(cols);
+                    filterPanel.setCurrentFilter(DitheringFilter.orderedDithering);
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 })
         );
     }
 
-    private Runnable setUpFilter(AreaFilter areaFilter) {
-        return () -> SwingUtilities.invokeLater(() -> filterPanel.setCurrentFilter(areaFilter));
+    public void setUpUnorderedDithering() {
+        var colors = DitheringFilter.unorderedDithering.getColors();
+        var r = new SpinnerNumberModel(colors[0], 1, 128, 1);
+        var g = new SpinnerNumberModel(colors[1], 1, 128, 1);
+        var b = new SpinnerNumberModel(colors[2], 1, 128, 1);
+
+        showDialog("Unordered dithering", new String[]{"Reds", "Greens", "Blues"}, new SpinnerNumberModel[]{r, g, b}).ifPresent(
+                colorsObj -> SwingUtilities.invokeLater(()->{
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    var cols = new int[3];
+                    for (int i = 0; i < 3; i++)
+                        cols[i] = (int) colorsObj[i];
+
+                    DitheringFilter.unorderedDithering.setColors(cols);
+                    filterPanel.setCurrentFilter(DitheringFilter.unorderedDithering);
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                })
+        );
+    }
+
+    private void setupRotate() {
+        var angleModel = new SpinnerNumberModel(Rotate.filter.getAngle(), 0, 360, 1);
+
+        showDialog("Rotate", new String[]{"Angle"}, new SpinnerNumberModel[]{angleModel}).ifPresent(
+                angleObj -> SwingUtilities.invokeLater(()->{
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    int degrees = (Integer) angleObj[0];
+                    Rotate.filter.setAngle(degrees);
+                    filterPanel.setCurrentFilter(Rotate.filter);
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                })
+        );
+    }
+
+    private void setUpErode() {
+        var sizeModel = new SpinnerNumberModel(Erode.filter.getDiameter(), 1, 13, 2);
+
+        showDialog("Erode", new String[]{"Size"}, new SpinnerNumberModel[]{sizeModel}).ifPresent(
+                sizeObj -> SwingUtilities.invokeLater(()->{
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    int size = (Integer) sizeObj[0];
+                    Erode.filter = new Erode(size);
+                    filterPanel.setCurrentFilter(Erode.filter);
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                })
+        );
+    }
+
+    private void setUpDilate() {
+        var sizeModel = new SpinnerNumberModel(Dilate.filter.getDiameter(), 1, 13, 2);
+
+        showDialog("Dilate", new String[]{"Size"}, new SpinnerNumberModel[]{sizeModel}).ifPresent(
+                sizeObj -> SwingUtilities.invokeLater(()->{
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    int size = (Integer) sizeObj[0];
+                    Dilate.filter = new Dilate(size);
+                    filterPanel.setCurrentFilter(Dilate.filter);
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                })
+        );
+    }
+
+    private Runnable setUpFilter(Filter filter) {
+        return () -> SwingUtilities.invokeLater(() -> {
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            filterPanel.setCurrentFilter(filter);
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        });
     }
 
     public void addFilter(String name, String tooltip, int hotkey, Runnable setUpFilter) {
