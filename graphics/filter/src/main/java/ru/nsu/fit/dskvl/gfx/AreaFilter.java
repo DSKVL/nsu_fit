@@ -272,8 +272,27 @@ class RobertsOperator extends AreaFilter {
 }
 
 class AquarelisationFilter implements Filter {
-    private final AreaFilter median = AreaFilter.medianFilter(3);
-    private final AreaFilter sharpen = AreaFilter.sharpen3_2;
+    static int[] buf = new int[13];
+    //private final static AreaFilter median = AreaFilter.medianFilter(3);
+    private final static AreaFilter median = new AreaFilter(5, Filter.forChannels(ch -> {
+        buf[0] = ch[2];
+        buf[1] = ch[6];
+        buf[2] = ch[7];
+        buf[3] = ch[8];
+        buf[4] = ch[10];
+        buf[5] = ch[11];
+        buf[6] = ch[12];
+        buf[7] = ch[13];
+        buf[8] = ch[14];
+        buf[9] = ch[16];
+        buf[10] = ch[17];
+        buf[11] = ch[18];
+        buf[12] = ch[22];
+
+        Arrays.sort(buf);
+        return buf[6];
+    }));
+    private final AreaFilter sharpen = AreaFilter.sharpen3;
     @Override
     public void process(BufferedImage original, BufferedImage processed) {
         var copy = FilterPanel.deepCopy(original);

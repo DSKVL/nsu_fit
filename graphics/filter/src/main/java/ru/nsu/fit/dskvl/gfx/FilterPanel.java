@@ -28,12 +28,12 @@ public class FilterPanel extends JPanel {
         currentHeight = height;
 
         try {
-            var imgURL = getClass().getResource("defaultImage.jpg");
+            var imgURL = getClass().getResource("defaultImage.png");
             if (imgURL == null) throw new IOException();
             processedImage = ImageIO.read(imgURL);
             originalImage = ImageIO.read(imgURL);
         } catch (IOException e) {
-            System.err.println("Unable to open defaultImage.jpg");
+            System.err.println("Unable to open defaultImage.png");
         }
     }
     public void setImagePanel(JImagePanel imagePanel) {

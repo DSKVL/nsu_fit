@@ -114,7 +114,7 @@ void print(std::vector<vector> &H, std::ofstream &out) {
   auto printElem = [&](const auto &el) { out << el << " "; };
   auto print = [&](const auto &v) {
       std::ranges::for_each(v.begin(), v.end(), printElem);
-      out << "\n";
+      out << std::endl;
   };
   std::ranges::for_each(H.begin(), H.end(), print);
 }
@@ -140,12 +140,11 @@ auto gaussElimination(std::vector<vector> &matrix) {
           [](const auto &el) { return el == 0; }); });
 }
 
-bool aLinearCombinationOf(const vector &vec, const std::vector<vector> &vectors) {
-  auto matrix = std::vector<vector>{vec};
-  matrix.insert(matrix.end(), vectors.begin(), vectors.end());
-  auto size = matrix.size();
-  gaussElimination(matrix);
-  return size != matrix.size();
+bool aLinearCombinationOf(const vector &vec, std::vector<vector> &&vectors) {
+  vectors.push_back(vec);
+  auto size = vectors.size();
+  gaussElimination(vectors);
+  return size != vectors.size();
 }
 
 auto binomialCoefficient(const uint32_t n, const uint32_t k) {
@@ -199,7 +198,7 @@ generatePseudoCheckMatrix(const uint32_t n, const uint32_t r,
     while (notLC && std::next_permutation(selectedPositions.begin(), selectedPositions.end()));
     if (notLC) {
       result.push_back(vec);
-      std::cerr << result.size() << " so far.\n";
+      std::cerr << result.size() << " so far." << std::endl;
     }
   }
 
@@ -233,16 +232,12 @@ auto findD(unsigned d, const std::vector<vector> &H) {
 
 int main(int argc, char** argv) {
   uint32_t n, r, d, q;
-  if (argc <= 1) {
-    auto in = std::ifstream("input.txt");
-    in >> n >> r >> d >> q;
-  } else {
-    if (argc != 5) std::cout << "Формат аргументов: n r d q";
-    n = std::stoul(argv[1]);
-    r = std::stoul(argv[2]);
-    d = std::stoul(argv[3]);
-    q = std::stoul(argv[4]);
-  }
+  if (argc != 5) std::cout << "Формат аргументов: n r d q";
+  n = std::stoul(argv[1]);
+  r = std::stoul(argv[2]);
+  d = std::stoul(argv[3]);
+  q = std::stoul(argv[4]);
+
   auto sum = std::vector(q * q, 0u);
   auto prod = std::vector(q * q, 0u);
   auto dif = std::vector(q * q, 0u);
@@ -252,7 +247,7 @@ int main(int argc, char** argv) {
   vector::setQ(q, sum, prod, dif, div);
   auto pseudoCheckMatrix = generatePseudoCheckMatrix(n, r, d, q);
   if (!pseudoCheckMatrix.has_value()) {
-    std::cout << n << " " << r << " " << d << " garbage in";
+    std::cout << n << " " << r << " " << d << " garbage in" << std::endl;
     return 0;
   }
   auto H = transpose(pseudoCheckMatrix.value());
@@ -262,14 +257,11 @@ int main(int argc, char** argv) {
 
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-  if (argc <= 1) {
-    auto out = std::ofstream("output.txt");
-    print(H, out);
-    auto paramsOut = std::ofstream("parameters.txt");
-    paramsOut << H[0].size() << " " << H[0].size() - H.size() << " " << d << "\n";
-    paramsOut << "Time: " << millis<< "ms";
-    return 0;
-  }
-  std::cout << H[0].size() << " " << H[0].size() - H.size() << " "
-            << actualD << " " << millis << "\n";
+  std::cout << "n = " <<  H[0].size() << ", k = " << H[0].size() - H.size() << ", d = "
+            << actualD << ", t = " << millis << " ms" << std::endl;
+  auto out = std::ofstream("output.txt");
+  print(H, out);
+  auto paramsOut = std::ofstream("parameters.txt");
+  paramsOut << H[0].size() << " " << H[0].size() - H.size() << " " << d << std::endl;
+  paramsOut << "Time: " << millis<< "ms" << std::endl;
 }

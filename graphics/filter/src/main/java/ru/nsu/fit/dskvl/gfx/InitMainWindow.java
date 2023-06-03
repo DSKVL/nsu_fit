@@ -12,8 +12,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 
-//TODO Слайдеры
-
 public class InitMainWindow extends MainFrame {
     private static final int minimalWidth = 640;
     private static final int minimalHeight = 480;
@@ -50,8 +48,6 @@ public class InitMainWindow extends MainFrame {
             var imagePanel = new JImagePanel(scrollPane, filterPanel);
             filterPanel.setImagePanel(imagePanel);
 
-
-            //addJRadioButtonMenuItem("Image/Fit", "Change image size", KeyEvent.VK_P, filterPanel::changeFit);
 
             addFilter("Black and white", "Converts to black and white", 0, setUpFilter(AreaFilter.blackAndWhite));
             addFilter("Inversion", "Inverses intensities", 0, setUpFilter(AreaFilter.inversion));
@@ -96,15 +92,45 @@ public class InitMainWindow extends MainFrame {
         }
     }
 
+    private BoundedRangeModel spinnerNMtoSliderNM(SpinnerNumberModel model) {
+        if (model.getValue() instanceof Integer) {
+            var length =  ((Integer) model.getMaximum() - (Integer) model.getMinimum())/(Integer) model.getStepSize();
+            var value =  ((Integer) model.getValue() - (Integer) model.getMinimum())/(Integer) model.getStepSize();
+            return new DefaultBoundedRangeModel(value, 1, 0, length+1);
+        } else if (model.getValue() instanceof Double) {
+            var length = (int) (((Double)  model.getMaximum() - (Double) model.getMinimum())/(Double) model.getStepSize());
+            var value = (int) (((Double) model.getValue() - (Double) model.getMinimum())/(Double) model.getStepSize());
+            return new DefaultBoundedRangeModel(value, 1, 0, length);
+        }
+        return null;
+    }
+
+    private void bindSliderAndSpinner(JSlider slider, JSpinner spinner, SpinnerNumberModel model) {
+        if (model.getValue() instanceof Integer) {
+            slider.addChangeListener(e -> spinner.setValue(slider.getValue()*(Integer) model.getStepSize()
+                    + (Integer) model.getMinimum()));
+            spinner.addChangeListener(e -> slider.setValue(((Integer) model.getValue()
+                    - (Integer) model.getMinimum())/ (Integer) model.getStepSize()));
+        } else if (model.getValue() instanceof Double) {
+            slider.addChangeListener(e -> spinner.setValue(slider.getValue()*(Double) model.getStepSize()
+                    + (Double) model.getMinimum()));
+            spinner.addChangeListener(e -> slider.setValue((int)(((Double) spinner.getValue()
+                    - (Double) model.getMinimum())/ (Double) model.getStepSize())));
+        }
+    }
+
     private Optional<Object[]> showDialog(String title, String[] parameters, SpinnerNumberModel[] models) {
         var parametersCount = parameters.length;
         var dialog = new JDialog(this, title, true);
-        var layout = new GridLayout(1 + parametersCount, 2, 10, 15);
+        var layout = new GridLayout(1 + parametersCount, 3, 10, 15);
         var labels = new JLabel[parametersCount];
         var spinners = new JSpinner[parametersCount];
+        var sliders = new JSlider[parametersCount];
         for (int i = 0; i < parametersCount; i++) {
             labels[i] = new JLabel(parameters[i]);
             spinners[i] = new JSpinner(models[i]);
+            sliders[i] = new JSlider(spinnerNMtoSliderNM(models[i]));
+            bindSliderAndSpinner(sliders[i], spinners[i], models[i]);
         }
 
         JButton okButton = new JButton ("OK"),
@@ -123,6 +149,7 @@ public class InitMainWindow extends MainFrame {
         for (int i = 0; i < parametersCount; i++) {
             panel.add(labels[i]);
             panel.add(spinners[i]);
+            panel.add(sliders[i]);
         }
         panel.add(okButton);
         panel.add(cancelButton);
@@ -195,9 +222,9 @@ public class InitMainWindow extends MainFrame {
 
     public void setUpOrderedDithering() {
         var colors = DitheringFilter.orderedDithering.getColors();
-        var r = new SpinnerNumberModel(colors[0], 1, 128, 1);
-        var g = new SpinnerNumberModel(colors[1], 1, 128, 1);
-        var b = new SpinnerNumberModel(colors[2], 1, 128, 1);
+        var r = new SpinnerNumberModel(colors[0], 2, 128, 1);
+        var g = new SpinnerNumberModel(colors[1], 2, 128, 1);
+        var b = new SpinnerNumberModel(colors[2], 2, 128, 1);
 
         showDialog("Ordered dithering", new String[]{"Reds", "Greens", "Blues"}, new SpinnerNumberModel[]{r, g, b}).ifPresent(
                 colorsObj -> SwingUtilities.invokeLater(()->{
@@ -214,9 +241,9 @@ public class InitMainWindow extends MainFrame {
 
     public void setUpUnorderedDithering() {
         var colors = DitheringFilter.unorderedDithering.getColors();
-        var r = new SpinnerNumberModel(colors[0], 1, 128, 1);
-        var g = new SpinnerNumberModel(colors[1], 1, 128, 1);
-        var b = new SpinnerNumberModel(colors[2], 1, 128, 1);
+        var r = new SpinnerNumberModel(colors[0], 2, 128, 1);
+        var g = new SpinnerNumberModel(colors[1], 2, 128, 1);
+        var b = new SpinnerNumberModel(colors[2], 2, 128, 1);
 
         showDialog("Unordered dithering", new String[]{"Reds", "Greens", "Blues"}, new SpinnerNumberModel[]{r, g, b}).ifPresent(
                 colorsObj -> SwingUtilities.invokeLater(()->{

@@ -58,17 +58,17 @@ int main(int argc, char** argv) {
   first = imread(*iter, IMREAD_GRAYSCALE);
 
   std::function<void(const Mat&, Mat&)> 
-    blur     =  [](const Mat& s, Mat& d){ GaussianBlur(s, d, Size(19, 19), 5, 5); },
+    blur     =  [](const Mat& s, Mat& d){ GaussianBlur(s, d, Size(7, 7), 2, 2); },
     erode    = [&](const Mat& s, Mat& d){ cv::erode(s, d, ker, Point(-1, -1), 2, 1, 1); },
     dilate   = [&](const Mat& s, Mat& d){ cv::dilate(s,d,ker, Point(-1, -1), 2, 1, 1); },
     subFirst = [&](const Mat& s, Mat& d){ cv::addWeighted(s, -1.0, first, 1.0, 0, d); },
-    canny    = [] (const Mat& s, Mat& d){ cv::Canny(s, d, 1.0, 1.0);};
+    canny    = [] (const Mat& s, Mat& d){ cv::Canny(s, d, 200, 100); };
   
   for (;iter != imagesPaths.end(); ++iter) {
     std::cout << *iter << '\n';
     img = imread(*iter, IMREAD_GRAYSCALE);
     apply(img, proc, std::vector{
-      blur
+      blur, canny
     });
     imshow("original", img);
     imshow("processed", proc);
