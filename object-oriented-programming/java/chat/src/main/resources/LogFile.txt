@@ -1,0 +1,28 @@
+Server started
+
+сыыырник accepted
+	user ID: 0
+now several counts of users: 0
+
+сыыырник
+ asked for /showHistory
+
+Bruh accepted
+	user ID: 1
+now several counts of users: 1
+
+Bruh
+ asked for /showHistory
+
+The client 'Bruh' closed the connection
+ now several counts of users: 1
+
+сыыырник
+ asked for /userList
+
+сыыырник
+ asked for /showHistory
+
+The client 'сыыырник' closed the connection
+ now several counts of users: 0
+

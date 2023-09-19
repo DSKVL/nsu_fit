@@ -1,0 +1,12 @@
+The client 'сыыырник' sent: /showHistory
+The client 'сыыырник' sent: как же хороша итальянская питса
+The client 'Bruh' sent: /showHistory
+The client 'Bruh' sent: still total BRUH
+The client 'Bruh' sent: /quit
+The client 'сыыырник' sent: ой
+The client 'сыыырник' sent: кто-то отсоединился по времени
+The client 'сыыырник' sent: /usersList
+The client 'сыыырник' sent: /chatHistory
+The client 'сыыырник' sent: не то....
+The client 'сыыырник' sent: /showHistory
+The client 'сыыырник' sent: /quit
