@@ -1,14 +1,12 @@
 (defun one-elem-list (e) (cons e nil))
 
-(defun append-element (l e)
-  (if (null l) 
-    (one-elem-list e)
-    (cons (car l) (append-element (cdr l) e))))
-    
 (defun append-list (l1 l2)
   (if (null l1)
     l2
     (cons (car l1) (append-list (cdr l1) l2))))
+
+(defun append-element (l e)
+  (append-list l (one-elem-list e)))
      
 (defun rev (l) 
   (if (null l) 
@@ -25,10 +23,9 @@
     (mapcar #'nl-rev(rev l))))
 
 (defun rev-impl (l prl c)
-  (cond 
-    ((null l) (append-list prl l))
-    ((funcall c l) (append-list prl l))
-    (t (rev-impl (cdr l) (cons (car l) prl) c))))
+  (if (or (null l) (funcall c l)) 
+    (append-list prl l)
+    (rev-impl (cdr l) (cons (car l) prl) c)))
 
 (defun rev-g (l)
   (rev-impl l () 
