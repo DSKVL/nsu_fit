@@ -1,4 +1,8 @@
 bin/*
 obj/*
-Strategy/*
-Strategy/*
+Strategy/bin/*
+Strategy/obj/*
+Nsu.ColliseumProblem.Contracts/bin/*
+Nsu.ColliseumProblem.Contracts/obj/*
+ColliseumRunner/bin/*
+ColliseumRunner/obj/*
