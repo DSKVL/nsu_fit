@@ -1,3 +1,4 @@
+using Nsu.ColiseumProblem.Contracts;
 using Nsu.ColiseumProblem.Contracts.Cards;
 
 namespace Nsu.ColiseumProblem.Contracts;

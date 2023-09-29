@@ -13,4 +13,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+	<ProjectReference Include="..\Strategy\Strategy.csproj" />
+    <ProjectReference Include="..\Nsu.ColiseumProblem.Contracts\Nsu.ColiseumProblem.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
