@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿namespace ColliseumRunner;
+
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Nsu.ColiseumProblem.Contracts;
 using Strategy;
-
-namespace Nsu.ColiseumProblem;
 
 class Program
 {
@@ -17,7 +17,7 @@ class Program
     return Host.CreateDefaultBuilder(args)
       .ConfigureServices((hostContext, services) =>
       {
-			  services.AddHostedService<ColliseumExperimentWorker>();
+			  services.AddHostedService<ColliseumExperimentService>();
         services.AddSingleton<ColliseumSandbox>();
         services.AddScoped<IDeckShuffler, RandomDeckShuffler>();
       	services.AddScoped<ICardPickStrategy, Trivial>();       

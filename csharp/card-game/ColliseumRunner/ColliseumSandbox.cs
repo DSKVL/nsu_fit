@@ -1,3 +1,5 @@
+namespace ColliseumRunner;
+
 using Nsu.ColiseumProblem.Contracts;
 using Nsu.ColiseumProblem.Contracts.Cards;
 
@@ -12,7 +14,7 @@ public class ColliseumSandbox {
 		_player2 = player2;
 	}
 
-	public bool runExperiment() {
+	public virtual bool runExperiment() {
 		(Card[] deck1, Card[] deck2) = _deckShuffler.Shuffle();
 		return deck2[_player1.Pick(deck1)] == deck1[_player2.Pick(deck2)];
 	}

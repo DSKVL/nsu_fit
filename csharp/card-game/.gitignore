@@ -6,3 +6,5 @@ Nsu.ColliseumProblem.Contracts/bin/*
 Nsu.ColliseumProblem.Contracts/obj/*
 ColliseumRunner/bin/*
 ColliseumRunner/obj/*
+Tests/bin/*
+Tests/obj/*

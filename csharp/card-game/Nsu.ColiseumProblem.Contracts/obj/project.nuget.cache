@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Sxqecuf28roDV1Q+8RrcOYPBWxzxb/7cskwKj0Fg+sTGJR0vwBXxpMT8/jT6bi2gjk8cr7uDhNfhlgBpgIUTCA==",
+  "success": true,
+  "projectFilePath": "/home/dskvl/nsu_fit/csharp/card-game/Nsu.ColiseumProblem.Contracts/Nsu.ColiseumProblem.Contracts.csproj",
+  "expectedPackageFiles": [
+    "/home/dskvl/.nuget/packages/microsoft.aspnetcore.app.ref/7.0.11/microsoft.aspnetcore.app.ref.7.0.11.nupkg.sha512"
+  ],
+  "logs": []
+}
