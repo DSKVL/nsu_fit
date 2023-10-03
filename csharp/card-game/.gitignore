@@ -2,8 +2,8 @@ bin/*
 obj/*
 Strategy/bin/*
 Strategy/obj/*
-Nsu.ColliseumProblem.Contracts/bin/*
-Nsu.ColliseumProblem.Contracts/obj/*
+Nsu.ColiseumProblem.Contracts/bin/*
+Nsu.ColiseumProblem.Contracts/obj/*
 ColliseumRunner/bin/*
 ColliseumRunner/obj/*
 Tests/bin/*

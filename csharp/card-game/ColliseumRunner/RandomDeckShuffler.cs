@@ -5,7 +5,6 @@ using System;
 
 public class RandomDeckShuffler : IDeckShuffler 
 {
-
 	public (Card[], Card[]) Shuffle() 
 	{
 		var rng = new Random();
@@ -13,8 +12,10 @@ public class RandomDeckShuffler : IDeckShuffler
 			.Concat(Enumerable.Repeat(new Card(CardColor.Black), 18))
 			.ToArray();
 		var shuffledDeck = deck.OrderBy(x => rng.Next()).ToArray();
+		
+		var decks = (shuffledDeck.Take(18).ToArray(), 
+								 shuffledDeck.Reverse().Take(18).ToArray());
 
-		return (shuffledDeck.Take(18).ToArray(), 
-						shuffledDeck.Reverse().Take(18).ToArray());
+		return decks;
 	}
 }

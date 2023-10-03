@@ -19,7 +19,9 @@ class Program
       {
 			  services.AddHostedService<ColliseumExperimentService>();
         services.AddSingleton<ColliseumSandbox>();
-        services.AddScoped<IDeckShuffler, RandomDeckShuffler>();
+				services.AddSingleton<RandomDeckShuffler>();
+				services.AddDbContext<ExperimentalConditionsContext>();
+        services.AddScoped<IDeckShuffler, DBDeckShuffler>();
       	services.AddScoped<ICardPickStrategy, Trivial>();       
 			});
     }
