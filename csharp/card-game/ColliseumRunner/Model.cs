@@ -21,14 +21,6 @@ public class ExperimentalConditionsContext : DbContext
 	protected override void OnConfiguring(DbContextOptionsBuilder options)
     => options.UseSqlite(connectionString);
 	
-	class DeckConverter : ValueConverter<Card[], string> 
-	{
-		public DeckConverter() : base(
-			ca => String.Concat(ca.Select(c 
-				=> c.Color == CardColor.Red ? 'r' : 'b')), 
-			s => s.Select(c 
-				=> new Card(c == 'r' ? CardColor.Red : CardColor.Black)).ToArray()) {}
-	}
 	private DeckConverter converter = new DeckConverter();
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	  => modelBuilder
@@ -53,3 +45,11 @@ public class ExperimentalConditions
 	public Card[] deck2 { get; set; }
 }
 
+public class DeckConverter : ValueConverter<Card[], string> 
+{
+	public DeckConverter() : base(
+		ca => String.Concat(ca.Select(c 
+			=> c.Color == CardColor.Red ? 'r' : 'b')), 
+		s => s.Select(c 
+			=> new Card(c == 'r' ? CardColor.Red : CardColor.Black)).ToArray()) {}
+}
