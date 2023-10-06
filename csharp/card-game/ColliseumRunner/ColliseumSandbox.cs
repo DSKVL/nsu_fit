@@ -22,6 +22,9 @@ public class ColliseumSandbox {
 	public virtual bool runExperiment() 
 	{
 		(Card[] deck1, Card[] deck2) = _deckShuffler.Shuffle();
-		return deck2[_player1.Pick(deck1)] == deck1[_player2.Pick(deck2)];
+		var pick1 = _player1.Pick(deck1);
+		var pick2 = _player2.Pick(deck2);
+		Console.WriteLine($"p1 {pick1} p2 {pick2}");
+		return deck2[pick1] == deck1[pick2];
 	}
 }

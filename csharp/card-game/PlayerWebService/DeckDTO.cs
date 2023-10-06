@@ -1,8 +1,8 @@
 namespace PlayerWebService;
 
-using System.ComponentModel;
 using Nsu.ColiseumProblem.Contracts.Cards;
 
+/*
 class DeckConverter : TypeConverter {
 	public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) 
 		=> (sourceType == typeof(string)) ? true : base.CanConvertFrom(context, sourceType);
@@ -18,8 +18,8 @@ class DeckConverter : TypeConverter {
     return base.ConvertFrom(context, culture, value);
   }
 } 
+*/
 
-[TypeConverter(typeof(DeckConverter))]
 public class DeckDTO
 {
 	public Card[] deck;

@@ -2,9 +2,10 @@
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
+using MassTransit;
 
 using Nsu.ColiseumProblem.Contracts;
+using Nsu.ColiseumProblem.Contracts.Messages;
 using Strategy;
 
 public delegate ICardPickStrategy PlayerResolver(string name);
@@ -37,12 +38,32 @@ class Program
 				services.AddTransient<SecondPlayerService>();
 
 
+				services.AddTransient<FirstPlayerConsumer>();
+				services.AddTransient<SecondPlayerConsumer>();
+
+				services.AddMassTransit(x => 
+						{
+							x.AddConsumer<FirstPlayerConsumer>(); 
+							x.AddConsumer<SecondPlayerConsumer>();
+							
+							x.UsingRabbitMq((context, cfg) =>
+    					{
+								cfg.ReceiveEndpoint("picks", e => 
+										{
+											e.Bind<PickMessage>();
+											e.ConfigureConsumer<FirstPlayerConsumer>(context);
+											e.ConfigureConsumer<SecondPlayerConsumer>(context);
+										});
+        				cfg.ConfigureEndpoints(context);
+    					});
+						});
+				
 				services.AddTransient<PlayerResolver>(serviceProvider => name =>
 				{
 					switch(name)
 					{
-						case "Elon": return serviceProvider.GetService<FirstPlayerService>();
-						case "Zucc": return serviceProvider.GetService<SecondPlayerService>();
+						case "Elon": return serviceProvider.GetService<FirstPlayerConsumer>();
+						case "Zucc": return serviceProvider.GetService<SecondPlayerConsumer>();
 						default: return serviceProvider.GetService<Trivial>();
 					}
 				});
