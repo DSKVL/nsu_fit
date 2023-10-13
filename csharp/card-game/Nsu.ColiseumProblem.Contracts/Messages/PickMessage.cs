@@ -1,7 +1,6 @@
+using MassTransit;
+
 namespace Nsu.ColiseumProblem.Contracts.Messages;
 
-public record PickMessage 
-{
-	public int id { get; init; }
-	public int pick { get; init; }
-}
+[EntityName("pick")]
+public record PickMessage(long id, PickSource source, int pick) {}

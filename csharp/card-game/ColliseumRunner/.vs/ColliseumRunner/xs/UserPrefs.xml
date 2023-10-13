@@ -1,0 +1,26 @@
+﻿<Properties StartupConfiguration="{3CF06511-91DC-45D9-84AD-24CE143FB5D2}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="IColliseumSandbox.cs">
+    <Files>
+      <File FileName="ColliseumExperimentService.cs" Line="1" Column="1" />
+      <File FileName="IColliseumSandbox.cs" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="ColliseumRunner" expanded="True">
+            <Node name="ColliseumRunner" expanded="True">
+              <Node name="IColliseumSandbox.cs" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.ColliseumRunner PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

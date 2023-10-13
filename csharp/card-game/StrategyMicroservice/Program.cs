@@ -1,30 +1,45 @@
-﻿using Microsoft.Extensions.Hosting;
 using MassTransit;
-using Consumers;
+using Microservice.Consumers;
+using Microservice.Controllers;
 
-class Program {
+var builder = WebApplication.CreateBuilder(args);
 
-	public static void Main(string[] args) {
-		var builder = Host.CreateDefaultBuilder(args);
+IConfiguration configuration = builder.Configuration;
 
-		builder.ConfigureServices((hostContext, services) => 
-				{
-					services.AddMassTransit(x => 
-					{
-						x.AddConsumer<DeckMessageConsumer>();
+builder.Services.AddControllers();
+builder.Services.AddSingleton<StrategyController>();
+builder.Services.AddSingleton<PickMessageConsumer>();
+builder.Services.AddSingleton<DeckMessageConsumer>();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddMassTransit(x =>
+	{
+		x.AddConsumer<DeckMessageConsumer>();
+		x.AddConsumer<PickMessageConsumer>();
+		x.UsingRabbitMq((context, cfg) =>
+			{
+				cfg.ReceiveEndpoint($"{configuration["source"]}-deck", e =>
+						e.ConfigureConsumer<DeckMessageConsumer>(context));
+				cfg.ReceiveEndpoint($"{configuration["source"]}-pick", e =>
+						e.ConfigureConsumer<PickMessageConsumer>(context));
+				cfg.ConfigureEndpoints(context);
+    	});	
+		});
 
-						x.UsingRabbitMq((context, cfg) =>
-    				{
-							cfg.ReceiveEndpoint($"{args[0]}", e => 
-							{
-								e.ConfigureConsumer<DeckMessageConsumer>(context);
-							});
+var app = builder.Build();
 
-							cfg.ConfigureEndpoints(context);
-    				});	
-					});
-				});
-		var app = builder.Build();
-		app.Run();
-	}
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

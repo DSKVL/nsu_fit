@@ -3,9 +3,10 @@ namespace ColliseumRunner;
 using Nsu.ColiseumProblem.Contracts;
 using Nsu.ColiseumProblem.Contracts.Cards;
 
-public class ColliseumSandbox {
-	private IDeckShuffler _deckShuffler;
-	private ICardPickStrategy _player1, _player2;
+public class ColliseumSandbox : IColliseumSandbox
+{
+	private readonly IDeckShuffler _deckShuffler;
+	private readonly ICardPickStrategy _player1, _player2;
 
 	public ColliseumSandbox(IDeckShuffler deckShuffler,
 			ICardPickStrategy player1, ICardPickStrategy player2) 
@@ -19,7 +20,7 @@ public class ColliseumSandbox {
 			PlayerResolver resolver) : this(deckShuffler, resolver("Elon"), resolver("Zucc"))
 	{}
 
-	public virtual bool runExperiment() 
+	public bool runExperiment() 
 	{
 		(Card[] deck1, Card[] deck2) = _deckShuffler.Shuffle();
 		var pick1 = _player1.Pick(deck1);

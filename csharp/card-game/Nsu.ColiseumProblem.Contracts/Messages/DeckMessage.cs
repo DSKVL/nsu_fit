@@ -1,9 +1,7 @@
 using Nsu.ColiseumProblem.Contracts.Cards;
+using MassTransit;
 
 namespace Nsu.ColiseumProblem.Contracts.Messages;
 
-public record DeckMessage 
-{
-	public int id { get; init; }
-	public Card[] deck { get; init; } = new Card[0];
-}
+[EntityName("deck")]
+public record DeckMessage (long id, Card[] deck) {}

@@ -4,12 +4,12 @@ using Microsoft.Extensions.Configuration;
 
 public class ColliseumExperimentWorker
 {
-	private readonly ColliseumSandbox _sandbox;
+	private readonly IColliseumSandbox _sandbox;
 	private readonly int totalExperiments;
 	private readonly int DEFAULT_TOTAL_EXPERIMENTS = 1000000;
 
 	public ColliseumExperimentWorker(
-			ColliseumSandbox sandbox,
+			IColliseumSandbox sandbox,
 			IConfiguration configuration) 
 	{
 		_sandbox = sandbox;
@@ -24,7 +24,8 @@ public class ColliseumExperimentWorker
 		}
 	}
 	
-	public void runExperiment() {
+	public void runExperiment() 
+	{
 		int count = 0;
 		for (int i = 0; i < totalExperiments; i++)
 			count += _sandbox.runExperiment() ? 1 : 0;

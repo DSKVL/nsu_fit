@@ -18,13 +18,13 @@ public class ExperimentalConditionsContext : DbContext
 		else 
 			connectionString = $"Data Source={DbPath}";
 	}
+
 	protected override void OnConfiguring(DbContextOptionsBuilder options)
     => options.UseSqlite(connectionString);
 	
 	private DeckConverter converter = new DeckConverter();
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
-	  => modelBuilder
-				.Entity<ExperimentalConditions>(eb => 
+	  => modelBuilder.Entity<ExperimentalConditions>(eb => 
 						{
 							eb.HasKey(ec => ec.id);
 							eb.Property(ec => ec.deck1).HasColumnName("Deck1").HasConversion(converter);

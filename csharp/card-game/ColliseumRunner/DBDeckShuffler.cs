@@ -28,7 +28,8 @@ public class DBDeckShuffler : IDeckShuffler {
 
 	public (Card[], Card[]) Shuffle() 
 	{
-		if (_read) { 
+		if (_read) 
+		{
 			_logger.LogInformation("Getting experimental conditions with id {0}", _currentExperimentId);
 			var ec = _db.Find<ExperimentalConditions>(_currentExperimentId++);
 			
@@ -40,7 +41,8 @@ public class DBDeckShuffler : IDeckShuffler {
 
 		(Card[] d1, Card[] d2) = _randomDeckShuffler.Shuffle();
 
-		if (_write) {
+		if (_write) 
+		{
 			var cond = new ExperimentalConditions(d1, d2);
 			_db.ExperimentalConditions.Add(cond);		
 			_db.SaveChanges();
