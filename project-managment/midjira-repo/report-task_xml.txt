@@ -1,0 +1,79 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="401ed062-ea7c-44b1-a9d8-b8c0364f8fa7" version="1">
+    <name>Task_report</name>
+    <metadata>
+        <requestTimestamp>2023-05-18T10:12:55.904Z</requestTimestamp>
+        <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </requestorRef>
+        <createTimestamp>2023-05-18T10:12:55.927Z</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </creatorRef>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+    </metadata>
+    <operationExecution id="2">
+        <recordType>simple</recordType>
+        <timestamp>2023-05-18T10:12:55.959Z</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>add</t:changeType>
+                <t:objectType>c:TaskType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <importance>normal</importance>
+                <token>1000000000000077133</token>
+            </executionResult>
+            <objectName>Task_report</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </initiatorRef>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
+    </operationExecution>
+    <assignment id="1">
+        <metadata>
+            <requestTimestamp>2023-05-18T10:12:55.904Z</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </requestorRef>
+            <createTimestamp>2023-05-18T10:12:55.927Z</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </creatorRef>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+        </metadata>
+        <targetRef oid="00000000-0000-0000-0000-000000000511" relation="org:default" type="c:ArchetypeType">
+            <!-- Report export task -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000511" relation="org:default" type="c:ArchetypeType">
+        <!-- Report export task -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000511" relation="org:default" type="c:ArchetypeType">
+        <!-- Report export task -->
+    </roleMembershipRef>
+    <taskIdentifier>1684404775928-11166-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <executionState>suspended</executionState>
+    <schedulingState>suspended</schedulingState>
+    <binding>loose</binding>
+    <activity>
+        <work>
+            <reportExport>
+                <reportRef oid="00000000-0000-0000-0000-000000000110" relation="org:default" type="c:ReportType">
+                    <!-- Users in MidPoint -->
+                </reportRef>
+            </reportExport>
+        </work>
+    </activity>
+</task>
