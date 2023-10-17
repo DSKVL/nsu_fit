@@ -1,0 +1,90 @@
+openapi: 3.0.3
+info:
+  title: Удаленное управление вычислительными программами - OpenAPI 3.0
+  description: |-
+    АПИ для удаленного управления вычислительными программами.
+  version: "0.1"
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://to.be.specified
+paths:
+  /handshake:
+    get:
+      summary: Список всех доступных параметров
+      description: При подключении с этого эндпоинта клиент получает полный список доступных параметров
+      operationId: handshake
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterList'
+  /parameter:
+    post:
+      summary: Установка значения параметра
+      description: Установка значения параметра
+      operationId: setParameter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Parameter'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Parameter'
+        '405':
+          description: Invalid input
+
+components:
+  schemas:
+    Parameter:
+      type: object
+      properties:
+        name:
+          type: string
+          format: int64
+          example: 10
+        type:
+          type: string
+          
+        petId:
+          type: integer
+          format: int64
+          example: 198772
+        quantity:
+          type: integer
+          format: int32
+          example: 7
+        shipDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: Order Status
+          example: approved
+          enum:
+            - placed
+            - approved
+            - delivered
+        complete:
+          type: boolean
+      xml:
+        name: order
+    ParameterList:
+      type: array
+      items: $ref '#/components/schemas/Parameter'
+      
+  requestBodies:
+    Parameter:
+      description: Parameter that must be set
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Parameter'
