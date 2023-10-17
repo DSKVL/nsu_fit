@@ -1,0 +1,3 @@
+[submodule "medpoll-front"]
+	path = medpoll-front
+	url = git@github.com:nsu-krpo-20/medpoll-front.git
